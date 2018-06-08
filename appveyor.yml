@@ -1,0 +1,12 @@
+image: Visual Studio 2017
+configuration: Release
+install:
+  - choco install gitversion.portable -y
+environment:
+  nuget_api_key:
+    secure: bdY+goGHbnoTCAcDyWYRaNBmWumi0Q5aTNlzcQWTyIo3XgNWfEhlcIYbtLuRMxCH
+before_build:
+  - cmd: gitversion /l console /output buildserver /updateassemblyinfo /b %APPVEYOR_REPO_BRANCH%
+  - nuget restore
+build:
+  project: Sally7.sln
