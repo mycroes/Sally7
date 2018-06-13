@@ -20,5 +20,10 @@ namespace Sally7.ValueConversion
 
             ((IDataItem<short>) dataItem).Value = (short) (buffer[0] << 8 | buffer[1]);
         }
+
+        public int GetDataItemLength(in IDataItem dataItem)
+        {
+            return 2 << 3;
+        }
     }
 }

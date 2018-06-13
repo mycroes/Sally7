@@ -17,10 +17,16 @@ namespace Sally7.ValueConversion
             ValueConverter(dataItem.ValueType).DecodeDataItemValue(buffer, dataItem, length);
         }
 
+        public int GetDataItemLength(in IDataItem dataItem)
+        {
+            return ValueConverter(dataItem.ValueType).GetDataItemLength(dataItem);
+        }
+
         private static Dictionary<Type, IValueConverter> BuildValueConverters()
         {
             return new Dictionary<Type, IValueConverter>
             {
+                {typeof(bool), new BoolValueConverter()},
                 {typeof(int), new Int32ValueConverter()},
                 {typeof(short), new Int16ValueConverter()}
             };
