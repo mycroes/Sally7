@@ -219,19 +219,26 @@ namespace Sally7
             var data = buffer.AsSpan().Slice(21, s7Header.DataLength);
             List<Exception> exceptions = null;
 
+            var offset = 0;
             foreach (var dataItem in dataItems)
             {
+                // If the last item is odd length, there's no additional 0 padded. Slicing at the end of the loop
+                // causes ArgumentOutOfRange in such conditions.
+                data = data.Slice(offset);
+
                 ref var di = ref data.Struct<DataItem>(0);
                 if (di.ErrorCode == ReadWriteErrorCode.Success)
                 {
-                    //Sharp7:
-                    //if ((S7ItemRead[1] != TS_ResOctet) && (S7ItemRead[1] != TS_ResReal) && (S7ItemRead[1] != TS_ResBit))
-                    //    ItemSize = ItemSize >> 3;
+                    var sizeIsInBytes = di.TransportSize == TransportSize.Bit ||
+                        di.TransportSize == TransportSize.OctetString || di.TransportSize == TransportSize.Real;
 
-                    var size = di.Count / 8;
+                    var size = sizeIsInBytes ? (int) di.Count : di.Count >> 3;
                     valueConverter.DecodeDataItemValue(data.Slice(4, size), dataItem, size);
 
-                    data = data.Slice(size + 4);
+                    // Odd sizes are padded in the message
+                    if (size % 2 == 1) size++;
+
+                    offset = size + 4;
                 }
                 else
                 {
@@ -239,7 +246,7 @@ namespace Sally7
 
                     exceptions.Add(
                         new Exception($"Read of dataItem {dataItem} returned {di.ErrorCode}"));
-                    data = data.Slice(4);
+                    offset = 4;
                 }
             }
 
