@@ -6,7 +6,7 @@ namespace Sally7.Protocol.S7
     internal struct DataItem
     {
         public ReadWriteErrorCode ErrorCode;
-        public VariableType VariableType;
+        public TransportSize TransportSize;
         public BigEndianShort Count;
         // byte[Count] Data
     }

@@ -20,6 +20,7 @@ namespace Sally7
 
         Address IDataItem.Address => address;
         Area IDataItem.Area => Area.DataBlock;
+        TransportSize IDataItem.TransportSize => TransportSize.Byte;
         Type IDataItem.ValueType => typeof(TValue);
         VariableType IDataItem.VariableType => VariableType.Byte;
     }

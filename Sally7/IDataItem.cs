@@ -10,6 +10,7 @@ namespace Sally7
         BigEndianShort DbNumber { get; }
         Address Address { get; }
         int Length { get; }
+        TransportSize TransportSize { get; }
         VariableType VariableType { get; }
         Type ValueType { get; }
     }
