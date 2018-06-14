@@ -209,10 +209,7 @@ namespace Sally7
                 ref var di = ref data.Struct<DataItem>(0);
                 if (di.ErrorCode == ReadWriteErrorCode.Success)
                 {
-                    var sizeIsInBytes = di.TransportSize == TransportSize.Bit ||
-                        di.TransportSize == TransportSize.OctetString || di.TransportSize == TransportSize.Real;
-
-                    var size = sizeIsInBytes ? (int) di.Count : di.Count >> 3;
+                    var size = di.TransportSize.IsSizeInBytes() ? (int) di.Count : di.Count >> 3;
                     valueConverter.DecodeDataItemValue(data.Slice(4, size), dataItem, size);
 
                     // Odd sizes are padded in the message
