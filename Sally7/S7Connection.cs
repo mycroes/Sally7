@@ -119,13 +119,13 @@ namespace Sally7
             var parameters = MemoryMarshal.Cast<byte, RequestItem>(buffer.AsSpan().Slice(19));
             for (var i = 0; i < dataItems.Count; i++)
             {
-                ApplyDataItem(ref parameters[i], dataItems[i]);
+                BuildRequestItem(ref parameters[i], dataItems[i]);
             }
 
             return BuildS7JobRequest(dataItems.Count * 12 + 2, 0);
         }
 
-        private void ApplyDataItem(ref RequestItem requestItem, in IDataItem dataItem)
+        private void BuildRequestItem(ref RequestItem requestItem, in IDataItem dataItem)
         {
             requestItem.Init();
             requestItem.Address = dataItem.Address;
