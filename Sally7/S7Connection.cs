@@ -60,6 +60,13 @@ namespace Sally7
             ParseReadResponse(dataItems, await ReadTpkt().ConfigureAwait(false));
         }
 
+        public async Task Write(params IDataItem[] dataItems)
+        {
+            var stream = client.GetStream();
+            await stream.WriteAsync(buffer, 0, BuildWriteRequest(dataItems)).ConfigureAwait(false);
+            ParseWriteResponse(dataItems, await ReadTpkt().ConfigureAwait(false));
+        }
+
         private async Task<int> ReadTpkt()
         {
             var stream = client.GetStream();
@@ -123,6 +130,39 @@ namespace Sally7
             }
 
             return BuildS7JobRequest(dataItems.Count * 12 + 2, 0);
+        }
+
+        private int BuildWriteRequest(in IReadOnlyList<IDataItem> dataItems)
+        {
+            var span = buffer.AsSpan().Slice(17); // Skip header
+            span[0] = (byte) FunctionCode.Write;
+            span[1] = (byte) dataItems.Count;
+            var parameters = MemoryMarshal.Cast<byte, RequestItem>(span.Slice(2));
+            var fnParameterLength = dataItems.Count * 12 + 2;
+            var dataLength = 0;
+            var data = span.Slice(fnParameterLength);
+            for (var i = 0; i < dataItems.Count; i++)
+            {
+                BuildRequestItem(ref parameters[i], dataItems[i]);
+
+                ref var dataItem = ref data.Struct<DataItem>(0);
+                dataItem.ErrorCode = 0;
+                dataItem.TransportSize = dataItems[i].TransportSize;
+
+                var length = valueConverter.EncodeDataItemValue(dataItems[i], data.Slice(4));
+                dataItem.Count = dataItem.TransportSize.IsSizeInBytes() ? length : length << 3;
+
+                length += 4; // Add sizeof(DataItem)
+                if (length % 2 == 1)
+                {
+                    data[++length] = 0;
+                }
+                dataLength += length;
+
+                data = data.Slice(length);
+            }
+
+            return BuildS7JobRequest(fnParameterLength, dataLength);
         }
 
         private void BuildRequestItem(ref RequestItem requestItem, in IDataItem dataItem)
@@ -228,6 +268,40 @@ namespace Sally7
             }
 
             if (exceptions != null) throw new AggregateException(exceptions);
+        }
+
+        private void ParseWriteResponse(IReadOnlyList<IDataItem> dataItems, in int length)
+        {
+            DumpBuffer(length);
+            var span = buffer.AsSpan();
+
+            ref var dt = ref span.Struct<Data>(4);
+            dt.Assert();
+
+            ref var s7Header = ref span.Struct<Header>(7);
+            s7Header.Assert(MessageType.AckData);
+            if (s7Header.ParamLength != 2)
+                throw new Exception($"Write returned unexpected parameter length {s7Header.ParamLength}");
+
+            if ((FunctionCode) span[19] != FunctionCode.Write)
+                throw new Exception($"Expected FunctionCode {FunctionCode.Write}, received {(FunctionCode) span[19]}.");
+            if (span[20] != dataItems.Count)
+                throw new Exception($"Expected {dataItems.Count} items in write response, received {span[20]}.");
+
+            if (length != s7Header.DataLength + 21)
+                throw new Exception(
+                    $"Length of response ({length}) does not match length of fixed part ({s7Header.ParamLength}) and data ({s7Header.DataLength}) of S7 Ack Data.");
+
+            var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(span.Slice(21));
+            List<Exception> exceptions = null;
+
+            for (var i = 0; i < dataItems.Count; i++)
+            {
+                if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
+
+                if (exceptions == null) exceptions = new List<Exception>(1);
+                exceptions.Add(new Exception($"Read of dataItem {dataItems[i]} returned {errorCodes[i]}"));
+            }
         }
 
         private void DumpBuffer(in int length, [CallerMemberName] string caller = null)
