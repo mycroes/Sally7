@@ -23,7 +23,7 @@ namespace Sally7.ValueConversion
 
         public int GetDataItemLength(in IDataItem dataItem)
         {
-            return 2 << 3;
+            return 2;
         }
     }
 }

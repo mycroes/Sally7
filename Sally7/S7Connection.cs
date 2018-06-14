@@ -125,34 +125,14 @@ namespace Sally7
             return BuildS7JobRequest(dataItems.Count * 12 + 2, 0);
         }
 
-        private static void ApplyDataItem(ref RequestItem requestItem, in IDataItem dataItem)
+        private void ApplyDataItem(ref RequestItem requestItem, in IDataItem dataItem)
         {
             requestItem.Init();
             requestItem.Address = dataItem.Address;
             requestItem.Area = dataItem.Area;
             requestItem.DbNumber = dataItem.DbNumber;
             requestItem.VariableType = dataItem.VariableType;
-
-            if (dataItem.ValueType == typeof(bool))
-            {
-                requestItem.Count = 1;
-            }
-            else if (dataItem.ValueType == typeof(short))
-            {
-                requestItem.Count = 2;
-            }
-            else if (dataItem.ValueType == typeof(int))
-            {
-                requestItem.Count = 4;
-            }
-            else if (dataItem.ValueType == typeof(byte[]))
-            {
-                requestItem.Count = dataItem.Length;
-            }
-            else
-            {
-                throw new Exception($"Unsupported type requested.");
-            }
+            requestItem.Count = valueConverter.GetDataItemLength(dataItem);
         }
 
         private int BuildS7JobRequest(in BigEndianShort parameterLength, in BigEndianShort dataLength)
