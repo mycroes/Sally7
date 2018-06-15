@@ -28,7 +28,8 @@ namespace Sally7.ValueConversion
             {
                 {typeof(bool), new BoolValueConverter()},
                 {typeof(int), new Int32ValueConverter()},
-                {typeof(short), new Int16ValueConverter()}
+                {typeof(short), new Int16ValueConverter()},
+                {typeof(float), new FloatValueConverter()}
             };
         }
 
