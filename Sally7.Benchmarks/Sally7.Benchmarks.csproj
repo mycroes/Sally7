@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BigEndianArrayToIntConversion.cs" />
     <Compile Include="IntToFloatConversion.cs" />
     <Compile Include="IntToBigEndianArrayConversion.cs" />
     <Compile Include="Numbers.cs" />
