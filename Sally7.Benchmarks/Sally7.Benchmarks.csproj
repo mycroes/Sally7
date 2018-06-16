@@ -54,6 +54,7 @@
     <Compile Include="SomeStruct.cs" />
     <Compile Include="StructFromSpan.cs" />
     <Compile Include="TypeChanging.cs" />
+    <Compile Include="ConverterLookup.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
