@@ -50,10 +50,10 @@ namespace Sally7.Benchmarks
                 ? new[] {byteSpan[3], byteSpan[2], byteSpan[1], byteSpan[0]}
                 : new[] {byteSpan[0], byteSpan[1], byteSpan[2], byteSpan[3]};
         }
-    }
 
-    public class LocalBitConverter
-    {
-        public static bool IsLittleEndian { get; set; }
+        private class LocalBitConverter
+        {
+            public static bool IsLittleEndian { get; set; }
+        }
     }
 }
