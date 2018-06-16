@@ -23,14 +23,14 @@ namespace Sally7.Benchmarks
         [Benchmark]
         public Numbers UnsafeAsEnumReturn()
         {
-            int val = Value;
+            var val = Value;
             return Unsafe.As<int, Numbers>(ref val);
         }
 
         [Benchmark]
         public int UnsafeAsIntReturn()
         {
-            int val = Value;
+            var val = Value;
             return Unsafe.As<int, int>(ref val);
         }
     }
