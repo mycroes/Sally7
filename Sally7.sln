@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sally7", "Sally7\Sally7.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sally7.Benchmarks", "Sally7.Benchmarks\Sally7.Benchmarks.csproj", "{1B669D60-6229-4244-9DA6-A112BDAB664B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sally7.Tests", "Sally7.Tests\Sally7.Tests.csproj", "{F3E2B5A4-BE11-47E6-AB9F-36A9EE069A9E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{1B669D60-6229-4244-9DA6-A112BDAB664B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B669D60-6229-4244-9DA6-A112BDAB664B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B669D60-6229-4244-9DA6-A112BDAB664B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E2B5A4-BE11-47E6-AB9F-36A9EE069A9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3E2B5A4-BE11-47E6-AB9F-36A9EE069A9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3E2B5A4-BE11-47E6-AB9F-36A9EE069A9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3E2B5A4-BE11-47E6-AB9F-36A9EE069A9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
