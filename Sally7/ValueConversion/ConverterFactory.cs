@@ -5,7 +5,7 @@ namespace Sally7.ValueConversion
 {
     public delegate int ConvertToS7<TValue>(in TValue value, in int length, in Span<byte> output);
 
-    public delegate TValue ConvertFromS7<out TValue>(in Span<byte> input, in int length);
+    public delegate void ConvertFromS7<TValue>(ref TValue value, in Span<byte> input, in int length);
 
     internal class ConverterFactory
     {
@@ -16,20 +16,14 @@ namespace Sally7.ValueConversion
             if (type.IsEnum) type = Enum.GetUnderlyingType(type);
 
             if (type == typeof(int)) return new ConvertFromS7<int>(ConvertToInt);
-            if (type == typeof(float)) return new ConvertFromS7<float>(ConvertToIntSized<float>);
+            if (type == typeof(float)) return new ConvertFromS7<int>(ConvertToInt);
 
             throw new NotImplementedException();
         }
 
-        private static int ConvertToInt(in Span<byte> input, in int length)
+        private static void ConvertToInt(ref int value, in Span<byte> input, in int length)
         {
-            return input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
-        }
-
-        private static TValue ConvertToIntSized<TValue>(in Span<byte> input, in int length)
-        {
-            var value = ConvertToInt(input, length);
-            return Unsafe.As<int, TValue>(ref value);
+            value = input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
         }
     }
 }

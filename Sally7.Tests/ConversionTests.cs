@@ -22,7 +22,8 @@ namespace Sally7.Tests
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
             var converter = ConverterFactory.GetFromPlcConverter<int>();
-            var result = converter(bytes, sizeof(int));
+            int result = default;
+            converter(ref result, bytes, sizeof(int));
 
             Assert.Equal(value, result);
         }
@@ -39,7 +40,8 @@ namespace Sally7.Tests
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
             var converter = ConverterFactory.GetFromPlcConverter<float>();
-            var result = converter(bytes, sizeof(float));
+            float result = default;
+            converter(ref result, bytes, sizeof(float));
 
             Assert.Equal(value, result);
         }
@@ -62,7 +64,8 @@ namespace Sally7.Tests
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
             var converter = ConverterFactory.GetFromPlcConverter<EnumOfInt>();
-            var result = converter(bytes, sizeof(int));
+            EnumOfInt result = default;
+            converter(ref result, bytes, sizeof(int));
 
             Assert.Equal(value, result);
         }
