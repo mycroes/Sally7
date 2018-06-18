@@ -25,5 +25,15 @@ namespace Sally7.ValueConversion
         {
             value = input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
         }
+
+        private static void ConvertToShort(ref short value, in Span<byte> input, in int length)
+        {
+            value = (short) (input[0] << 8 | input[1]);
+        }
+
+        private static void ConvertToByte(ref byte value, in Span<byte> input, in int length)
+        {
+            value = input[0];
+        }
     }
 }
