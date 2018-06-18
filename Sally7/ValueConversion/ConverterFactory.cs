@@ -9,14 +9,23 @@ namespace Sally7.ValueConversion
 
     internal class ConverterFactory
     {
-        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() => Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcConverter(typeof(TValue)));
+        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() =>
+            Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcConverter(typeof(TValue), Unsafe.SizeOf<TValue>()));
 
-        private static Delegate GetFromPlcConverter(Type type)
+        private static Delegate GetFromPlcConverter(Type type, int size)
         {
-            if (type.IsEnum) type = Enum.GetUnderlyingType(type);
-
-            if (type == typeof(int)) return new ConvertFromS7<int>(ConvertToInt);
-            if (type == typeof(float)) return new ConvertFromS7<int>(ConvertToInt);
+            if (type.IsValueType)
+            {
+                switch (size)
+                {
+                    case sizeof(int):
+                        return new ConvertFromS7<int>(ConvertToInt);
+                    case sizeof(short):
+                        return new ConvertFromS7<short>(ConvertToShort);
+                    case sizeof(byte):
+                        return new ConvertFromS7<byte>(ConvertToByte);
+                }
+            }
 
             throw new NotImplementedException();
         }
