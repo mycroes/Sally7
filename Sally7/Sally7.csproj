@@ -3,6 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Description>S7 connection library with a focus on performance</Description>
+    <Authors>mycroes</Authors>
+    <PackageProjectUrl>https://github.com/mycroes/Sally7</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mycroes/Sally7</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>siemens s7 plc</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
