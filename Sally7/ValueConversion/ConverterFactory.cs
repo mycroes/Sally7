@@ -7,7 +7,7 @@ namespace Sally7.ValueConversion
 
     public delegate void ConvertFromS7<TValue>(ref TValue value, in Span<byte> input, in int length);
 
-    internal class ConverterFactory
+    internal static class ConverterFactory
     {
         public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() =>
             Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcConverter(typeof(TValue), Unsafe.SizeOf<TValue>()));
