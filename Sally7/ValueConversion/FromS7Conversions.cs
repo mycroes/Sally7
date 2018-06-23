@@ -85,8 +85,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToByteArray(ref byte[] value, in Span<byte> input, in int length)
         {
-            for (var i = 0; i < input.Length; i++)
-                value[i] = input[i];
+            input.CopyTo(value);
         }
 
         private static void ConvertToString(ref string value, in Span<byte> input, in int length)
