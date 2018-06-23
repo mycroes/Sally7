@@ -12,47 +12,16 @@ namespace Sally7.ValueConversion
     {
         private static readonly MethodInfo sizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf));
 
-        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>()
+        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() =>
+            Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcConverterImpl<TValue>());
+
+        private static Delegate GetFromPlcConverterImpl<TValue>()
         {
-            if (typeof(TValue).IsValueType)
-                return Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcConverter(typeof(TValue), Unsafe.SizeOf<TValue>()));
+            var type = typeof(TValue);
 
-            if (typeof(TValue).IsArray)
-            {
-                var elementType = typeof(TValue).GetElementType() ?? throw new Exception($"Type {typeof(TValue)} doesn't have an ElementType.");
-                return Unsafe.As<ConvertFromS7<TValue>>(GetFromPlcArrayConverter(elementType,
-                    (int) sizeOfMethod.MakeGenericMethod(elementType).Invoke(null, new object[0])));
-            }
-
-            if (typeof(TValue) == typeof(string))
-                throw new NotImplementedException();
-
-            throw new ArgumentException();
-        }
-
-        private static Delegate GetFromPlcArrayConverter(Type type, int elementSize)
-        {
             if (type.IsValueType)
             {
-                switch (elementSize)
-                {
-                    case sizeof(int):
-                        return new ConvertFromS7<int[]>(ConvertToIntArray);
-                    case sizeof(short):
-                        return new ConvertFromS7<short[]>(ConvertToShortArray);
-                    case sizeof(byte):
-                        return new ConvertFromS7<byte[]>(ConvertToByteArray);
-                }
-            }
-
-            throw new NotImplementedException();
-        }
-
-        private static Delegate GetFromPlcConverter(Type type, int size)
-        {
-            if (type.IsValueType)
-            {
-                switch (size)
+                switch (Unsafe.SizeOf<TValue>())
                 {
                     case sizeof(int):
                         return new ConvertFromS7<int>(ConvertToInt);
@@ -60,10 +29,35 @@ namespace Sally7.ValueConversion
                         return new ConvertFromS7<short>(ConvertToShort);
                     case sizeof(byte):
                         return new ConvertFromS7<byte>(ConvertToByte);
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            if (type.IsArray)
+            {
+                type = type.GetElementType() ?? throw new Exception(
+                    $"Type {typeof(TValue)} doesn't have an ElementType.");
+
+                switch (SizeOf(type))
+                {
+                    case sizeof(int):
+                        return new ConvertFromS7<int[]>(ConvertToIntArray);
+                    case sizeof(short):
+                        return new ConvertFromS7<short[]>(ConvertToShortArray);
+                    case sizeof(byte):
+                        return new ConvertFromS7<byte[]>(ConvertToByteArray);
+                    default:
+                        throw new NotImplementedException();
                 }
             }
 
             throw new NotImplementedException();
+        }
+
+        private static int SizeOf(Type type)
+        {
+            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
         }
 
         private static void ConvertToInt(ref int value, in Span<byte> input, in int length)
