@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Sally7.ValueConversion
 {
@@ -52,6 +53,8 @@ namespace Sally7.ValueConversion
                 }
             }
 
+            if (type == typeof(string)) return new ConvertFromS7<string>(ConvertToString);
+
             throw new NotImplementedException();
         }
 
@@ -91,6 +94,11 @@ namespace Sally7.ValueConversion
         {
             for (var i = 0; i < input.Length; i++)
                 value[i] = input[i];
+        }
+
+        private static void ConvertToString(ref string value, in Span<byte> input, in int length)
+        {
+            value = Encoding.ASCII.GetString(input.Slice(2, input[1]).ToArray());
         }
     }
 }
