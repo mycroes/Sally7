@@ -7,8 +7,6 @@ namespace Sally7.ValueConversion
 {
     internal static class FromS7Conversions
     {
-        private static readonly MethodInfo sizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf));
-
         public static Delegate GetConverter<TValue>()
         {
             var type = typeof(TValue);
@@ -33,7 +31,7 @@ namespace Sally7.ValueConversion
                 type = type.GetElementType() ?? throw new Exception(
                     $"Type {typeof(TValue)} doesn't have an ElementType.");
 
-                switch (SizeOf(type))
+                switch (ConversionHelper.SizeOf(type))
                 {
                     case sizeof(int):
                         return new ConvertFromS7<int[]>(ConvertToIntArray);
@@ -49,11 +47,6 @@ namespace Sally7.ValueConversion
             if (type == typeof(string)) return new ConvertFromS7<string>(ConvertToString);
 
             throw new NotImplementedException();
-        }
-
-        private static int SizeOf(Type type)
-        {
-            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
         }
 
         private static void ConvertToInt(ref int value, in Span<byte> input, in int length)
