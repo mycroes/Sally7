@@ -11,5 +11,8 @@ namespace Sally7.ValueConversion
     {
         public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() =>
             Unsafe.As<ConvertFromS7<TValue>>(FromS7Conversions.GetConverter<TValue>());
+
+        public static ConvertToS7<TValue> GetToPlcConverter<TValue>() =>
+            Unsafe.As<ConvertToS7<TValue>>(ToS7Conversions.GetConverter<TValue>());
     }
 }
