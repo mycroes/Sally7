@@ -6,8 +6,6 @@ namespace Sally7.Tests
 {
     public class ConversionTests
     {
-        private readonly ConverterFactory factory = new ConverterFactory();
-
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
