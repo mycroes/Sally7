@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Sally7.Tests
 {
-    public class ConversionTests
+    public class ValueTypeConversionTests
     {
         [Theory]
         [InlineData(0)]
