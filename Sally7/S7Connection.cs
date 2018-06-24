@@ -25,8 +25,6 @@ namespace Sally7
         private readonly Tsap destinationTsap;
         private readonly TcpClient client = new TcpClient {NoDelay = true};
 
-        private readonly IValueConverter valueConverter = new DelegatingValueConverter();
-
         private byte[] buffer = new byte[100];
         private int pduSize;
 
@@ -127,6 +125,7 @@ namespace Sally7
             for (var i = 0; i < dataItems.Count; i++)
             {
                 BuildRequestItem(ref parameters[i], dataItems[i]);
+                parameters[i].Count = dataItems[i].ReadCount;
             }
 
             return BuildS7JobRequest(dataItems.Count * 12 + 2, 0);
@@ -149,7 +148,8 @@ namespace Sally7
                 dataItem.ErrorCode = 0;
                 dataItem.TransportSize = dataItems[i].TransportSize;
 
-                var length = valueConverter.EncodeDataItemValue(dataItems[i], data.Slice(4));
+                var length = dataItems[i].WriteValue(data.Slice(4));
+                parameters[i].Count = length;
                 dataItem.Count = dataItem.TransportSize.IsSizeInBytes() ? length : length << 3;
 
                 length += 4; // Add sizeof(DataItem)
@@ -172,7 +172,6 @@ namespace Sally7
             requestItem.Area = dataItem.Area;
             requestItem.DbNumber = dataItem.DbNumber;
             requestItem.VariableType = dataItem.VariableType;
-            requestItem.Count = valueConverter.GetDataItemLength(dataItem);
         }
 
         private int BuildS7JobRequest(in BigEndianShort parameterLength, in BigEndianShort dataLength)
@@ -250,7 +249,7 @@ namespace Sally7
                 if (di.ErrorCode == ReadWriteErrorCode.Success)
                 {
                     var size = di.TransportSize.IsSizeInBytes() ? (int) di.Count : di.Count >> 3;
-                    valueConverter.DecodeDataItemValue(data.Slice(4, size), dataItem, size);
+                    dataItem.ReadValue(data.Slice(4, size));
 
                     // Odd sizes are padded in the message
                     if (size % 2 == 1) size++;

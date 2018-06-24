@@ -9,10 +9,13 @@ namespace Sally7
         Area Area { get; }
         BigEndianShort DbNumber { get; }
         Address Address { get; }
-        int Length { get; }
+        BigEndianShort ReadCount { get; }
+        
         TransportSize TransportSize { get; }
         VariableType VariableType { get; }
-        Type ValueType { get; }
+
+        int WriteValue(in Span<byte> output);
+        void ReadValue(in Span<byte> input);
     }
 
     public interface IDataItem<TValue> : IDataItem

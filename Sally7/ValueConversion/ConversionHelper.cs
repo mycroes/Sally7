@@ -12,5 +12,15 @@ namespace Sally7.ValueConversion
         {
             return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
         }
+
+        public static int GetElementSize<TValue>()
+        {
+            var type = typeof(TValue);
+            if (type.IsValueType) return Unsafe.SizeOf<TValue>();
+            if (type.IsArray) return SizeOf(type.GetElementType());
+            if (type == typeof(string)) return 1;
+
+            throw new NotImplementedException();
+        }
     }
 }
