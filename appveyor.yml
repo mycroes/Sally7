@@ -3,9 +3,8 @@ configuration: Release
 install:
   - choco install gitversion.portable -y
 deploy:
-  provider: NuGet
-  api_key:
-    secure: bdY+goGHbnoTCAcDyWYRaNBmWumi0Q5aTNlzcQWTyIo3XgNWfEhlcIYbtLuRMxCH
+  provider: environment
+  name: nuget
   artifact: /.*\.nupkg/
   on:
     branch: master
