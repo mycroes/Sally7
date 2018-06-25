@@ -1,0 +1,23 @@
+image: Visual Studio 2017
+configuration: Release
+install:
+  - choco install gitversion.portable -y
+deploy:
+  provider: environment
+  name: nuget
+  artifact: /.*\.nupkg/
+  on:
+    branch: master
+    appveyor_repo_tag: true
+before_build:
+  - cmd: gitversion /l console /output buildserver /updateassemblyinfo /b %APPVEYOR_REPO_BRANCH%
+  - nuget restore
+build:
+  verbosity: minimal
+  project: Sally7.sln
+after_build:
+  - dotnet pack Sally7 -c %CONFIGURATION% /p:Version=%GitVersion_NuGetVersion% --no-build -o ..\artifacts
+artifacts:
+  - path: artifacts\*.*
+cache:
+  - '%USERPROFILE%\.nuget\packages'
