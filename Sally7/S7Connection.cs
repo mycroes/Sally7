@@ -304,8 +304,8 @@ namespace Sally7
 
         private void DumpBuffer(in int length, [CallerMemberName] string caller = null)
         {
-            Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => $"{b:X}"))}");
-            Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => b))}");
+            //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => $"{b:X}"))}");
+            //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => b))}");
         }
     }
 }
