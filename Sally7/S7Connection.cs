@@ -12,7 +12,6 @@ using Sally7.Protocol.Cotp.Messages;
 using Sally7.Protocol.IsoOverTcp;
 using Sally7.Protocol.S7;
 using Sally7.Protocol.S7.Messages;
-using Sally7.ValueConversion;
 
 namespace Sally7
 {
