@@ -1,6 +1,13 @@
 # Sally7
 C# implementation of Siemens S7 connections with a focus on performance
 
+
+
+![license](https://img.shields.io/github/license/mycroes/Sally7.svg)
+[![AppVeyor](https://img.shields.io/appveyor/ci/mycroes/Sally7/develop.svg)](https://ci.appveyor.com/project/mycroes/sally7)
+[![NuGet](https://img.shields.io/nuget/v/Sally7.svg)](https://www.nuget.org/packages/Sally7)
+
+
 ## What is the S7 protocol?
 The **S7** protocol is a proprietary protocol for PLC communication with and between Siemens S7 PLC's.
 It's making use of **COTP** (*Connection Oriented Transport Protocol*, ISO 8073 / [RFC 905](https://tools.ietf.org/html/rfc905))
