@@ -77,7 +77,7 @@ namespace Sally7
 
         int IDataItem.WriteValue(in Span<byte> output) => toS7Converter.Invoke(value, Length, output);
 
-        void IDataItem.ReadValue(in Span<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
+        void IDataItem.ReadValue(in ReadOnlySpan<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
 
         private void SetLength(in int newLength)
         {

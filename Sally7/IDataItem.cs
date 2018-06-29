@@ -15,7 +15,7 @@ namespace Sally7
         VariableType VariableType { get; }
 
         int WriteValue(in Span<byte> output);
-        void ReadValue(in Span<byte> input);
+        void ReadValue(in ReadOnlySpan<byte> input);
     }
 
     public interface IDataItem<TValue> : IDataItem
