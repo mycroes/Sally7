@@ -10,7 +10,7 @@ namespace Sally7.ValueConversion
 
         public static int SizeOf(in Type type)
         {
-            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
+            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, new object[0]);
         }
 
         public static int GetElementSize<TValue>()
