@@ -9,7 +9,7 @@ namespace Sally7.Protocol.Cotp
         public byte Length;
         public PduSize Value;
 
-        public void Init(PduSize pduSize)
+        public void Init(in PduSize pduSize)
         {
             Code = ParameterCode.TpduSize;
             Value = pduSize;

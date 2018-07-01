@@ -28,7 +28,7 @@ namespace Sally7
             }
         }
 
-        private DataBlockDataItem(ConvertToS7<TValue> toS7Converter, ConvertFromS7<TValue> fromS7Converter, int elementSize)
+        private DataBlockDataItem(in ConvertToS7<TValue> toS7Converter, in ConvertFromS7<TValue> fromS7Converter, in int elementSize)
         {
             this.toS7Converter = toS7Converter;
             this.fromS7Converter = fromS7Converter;

@@ -19,7 +19,7 @@ namespace Sally7
         private byte[] buffer = new byte[100];
         private int pduSize;
 
-        public S7Connection(string host, Tsap sourceTsap, Tsap destinationTsap)
+        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap)
         {
             this.host = host;
             this.sourceTsap = sourceTsap;

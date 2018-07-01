@@ -230,7 +230,7 @@ namespace Sally7
             }
         }
 
-        private static void DumpBuffer(in ReadOnlySpan<byte> buffer, [CallerMemberName] string caller = null)
+        private static void DumpBuffer(in ReadOnlySpan<byte> buffer, [CallerMemberName] in string caller = null)
         {
             //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => $"{b:X}"))}");
             //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => b))}");

@@ -5,7 +5,7 @@ namespace Sally7.Protocol.Cotp
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Tsap
     {
-        public Tsap(byte channel, byte position)
+        public Tsap(in byte channel, in byte position)
         {
             Channel = channel;
             Position = position;
