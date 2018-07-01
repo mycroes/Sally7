@@ -82,7 +82,5 @@ namespace Sally7
 
             return tpkt.Length;
         }
-
-        
     }
 }
