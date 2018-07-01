@@ -9,7 +9,7 @@ namespace Sally7.Protocol.S7.Messages
         public FunctionCode FunctionCode;
         public byte ItemCount;
 
-        public void Assert(byte count)
+        public void Assert(in byte count)
         {
             if (FunctionCode != FunctionCode.Read) throw new Exception($"Expected FunctionCode {FunctionCode.Read}, received {FunctionCode}.");
             if (ItemCount != count) throw new Exception($"Expected ItemCount {count}, received {ItemCount}.");

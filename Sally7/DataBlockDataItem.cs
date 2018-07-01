@@ -28,7 +28,7 @@ namespace Sally7
             }
         }
 
-        private DataBlockDataItem(ConvertToS7<TValue> toS7Converter, ConvertFromS7<TValue> fromS7Converter, int elementSize)
+        private DataBlockDataItem(in ConvertToS7<TValue> toS7Converter, in ConvertFromS7<TValue> fromS7Converter, in int elementSize)
         {
             this.toS7Converter = toS7Converter;
             this.fromS7Converter = fromS7Converter;
@@ -77,7 +77,7 @@ namespace Sally7
 
         int IDataItem.WriteValue(in Span<byte> output) => toS7Converter.Invoke(value, Length, output);
 
-        void IDataItem.ReadValue(in Span<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
+        void IDataItem.ReadValue(in ReadOnlySpan<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
 
         private void SetLength(in int newLength)
         {

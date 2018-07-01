@@ -48,12 +48,12 @@ namespace Sally7.ValueConversion
             throw new NotImplementedException();
         }
 
-        private static void ConvertToInt(ref int value, in Span<byte> input, in int length)
+        private static void ConvertToInt(ref int value, in ReadOnlySpan<byte> input, in int length)
         {
             value = input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
         }
 
-        private static void ConvertToIntArray<TTarget>(ref int[] value, in Span<byte> input, in int length)
+        private static void ConvertToIntArray<TTarget>(ref int[] value, in ReadOnlySpan<byte> input, in int length)
         {
             if (value == null) value = Unsafe.As<int[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
@@ -61,12 +61,12 @@ namespace Sally7.ValueConversion
                 ConvertToInt(ref value[i], input.Slice(i * sizeof(int)), 1);
         }
 
-        private static void ConvertToShort(ref short value, in Span<byte> input, in int length)
+        private static void ConvertToShort(ref short value, in ReadOnlySpan<byte> input, in int length)
         {
             value = (short) (input[0] << 8 | input[1]);
         }
 
-        private static void ConvertToShortArray<TTarget>(ref short[] value, in Span<byte> input, in int length)
+        private static void ConvertToShortArray<TTarget>(ref short[] value, in ReadOnlySpan<byte> input, in int length)
         {
             if (value == null)
                 value = Unsafe.As<short[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
@@ -75,12 +75,12 @@ namespace Sally7.ValueConversion
                 ConvertToShort(ref value[i], input.Slice(i * sizeof(short)), 1);
         }
 
-        private static void ConvertToByte(ref byte value, in Span<byte> input, in int length)
+        private static void ConvertToByte(ref byte value, in ReadOnlySpan<byte> input, in int length)
         {
             value = input[0];
         }
 
-        private static void ConvertToByteArray<TTarget>(ref byte[] value, in Span<byte> input, in int length)
+        private static void ConvertToByteArray<TTarget>(ref byte[] value, in ReadOnlySpan<byte> input, in int length)
         {
             if (value == null)
                 value = Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
@@ -88,7 +88,7 @@ namespace Sally7.ValueConversion
             input.CopyTo(value);
         }
 
-        private static void ConvertToString(ref string value, in Span<byte> input, in int length)
+        private static void ConvertToString(ref string value, in ReadOnlySpan<byte> input, in int length)
         {
             value = Encoding.ASCII.GetString(input.Slice(2, input[1]).ToArray());
         }

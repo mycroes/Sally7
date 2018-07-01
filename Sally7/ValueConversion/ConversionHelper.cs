@@ -8,9 +8,9 @@ namespace Sally7.ValueConversion
     {
         private static readonly MethodInfo sizeOfMethod = typeof(Unsafe).GetMethod(nameof(Unsafe.SizeOf));
 
-        public static int SizeOf(Type type)
+        public static int SizeOf(in Type type)
         {
-            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
+            return (int) sizeOfMethod.MakeGenericMethod(type).Invoke(null, new object[0]);
         }
 
         public static int GetElementSize<TValue>()

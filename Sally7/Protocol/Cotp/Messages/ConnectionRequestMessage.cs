@@ -15,7 +15,7 @@ namespace Sally7.Protocol.Cotp.Messages
         public TsapParameter SourceTsapParameter;
         public TsapParameter DestinationTsapParameter;
         
-        public void Init(PduSizeParameter.PduSize pduSize, Tsap sourceTsap, Tsap destinationTsap)
+        public void Init(in PduSizeParameter.PduSize pduSize, in Tsap sourceTsap, in Tsap destinationTsap)
         {
             Length = (byte) (Size - 1);
             ConnectionRequest.Init();
