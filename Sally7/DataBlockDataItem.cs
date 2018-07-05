@@ -88,6 +88,10 @@ namespace Sally7
             {
                 ReadCount = length + 2;
             }
+            else if (typeof(TValue) == typeof(bool[]))
+            {
+                ReadCount = (length + 7) / 8;
+            }
             else
             {
                 ReadCount = length * elementSize;

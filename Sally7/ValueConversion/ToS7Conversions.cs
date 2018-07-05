@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -24,6 +25,9 @@ namespace Sally7.ValueConversion
                         throw new NotImplementedException();
                 }
             }
+
+            if (type == typeof(bool[]))
+                return new ConvertToS7<bool[]>(ConvertFromBoolArray);
 
             if (type.IsArray)
             {
@@ -94,6 +98,16 @@ namespace Sally7.ValueConversion
             value.AsSpan().CopyTo(output);
 
             return value.Length;
+        }
+
+        private static int ConvertFromBoolArray(in bool[] value, in int length, in Span<byte> output)
+        {
+            var bitArray = new BitArray(value);
+            var byteArray = new byte[(length + 7) / 8];
+            bitArray.CopyTo(byteArray, 0);
+            byteArray.CopyTo(output);
+
+            return byteArray.Length;
         }
 
         private static int ConvertFromString(in string value, in int length, in Span<byte> output)
