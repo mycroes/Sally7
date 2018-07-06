@@ -17,7 +17,7 @@ namespace Sally7
         public static int BuildConnectRequest(in Span<byte> buffer, in Tsap sourceTsap, in Tsap destinationTsap)
         {
             ref var message = ref buffer.Struct<ConnectionRequestMessage>(4);
-            message.Init(PduSizeParameter.PduSize.Pdu512, sourceTsap, destinationTsap);
+            message.Init(PduSizeParameter.PduSize.Pdu2048, sourceTsap, destinationTsap);
             var len = 4 + ConnectionRequestMessage.Size;
             buffer.Struct<Tpkt>(0).Init(len);
 
