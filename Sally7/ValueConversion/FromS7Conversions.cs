@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -24,6 +26,9 @@ namespace Sally7.ValueConversion
                         throw new NotImplementedException();
                 }
             }
+
+            if (type == typeof(bool[]))
+                return new ConvertFromS7<bool[]>(ConvertToBoolArray);
 
             if (type.IsArray)
             {
@@ -86,6 +91,11 @@ namespace Sally7.ValueConversion
                 value = Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
             input.CopyTo(value);
+        }
+
+        private static void ConvertToBoolArray(ref bool[] value, in ReadOnlySpan<byte> input, in int length)
+        {
+            value = new BitArray(input.Slice(0, (length + 7) / 8).ToArray()).Cast<bool>().Take(length).ToArray();
         }
 
         private static void ConvertToString(ref string value, in ReadOnlySpan<byte> input, in int length)
