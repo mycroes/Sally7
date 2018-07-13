@@ -12,7 +12,7 @@ namespace Sally7.ValueConversion
         {
             var type = typeof(TValue);
 
-            if (type.IsValueType)
+            if (type.IsPrimitive || type.IsEnum)
             {
                 switch (Unsafe.SizeOf<TValue>())
                 {
@@ -32,19 +32,22 @@ namespace Sally7.ValueConversion
 
             if (type.IsArray)
             {
-                type = type.GetElementType() ?? throw new Exception(
+                var elementType = type.GetElementType() ?? throw new Exception(
                     $"Type {typeof(TValue)} doesn't have an ElementType.");
 
-                switch (ConversionHelper.SizeOf(type))
+                if (elementType.IsPrimitive || elementType.IsEnum)
                 {
-                    case sizeof(int):
-                        return new ConvertFromS7<int[]>(ConvertToIntArray<TValue>);
-                    case sizeof(short):
-                        return new ConvertFromS7<short[]>(ConvertToShortArray<TValue>);
-                    case sizeof(byte):
-                        return new ConvertFromS7<byte[]>(ConvertToByteArray<TValue>);
-                    default:
-                        throw new NotImplementedException();
+                    switch (ConversionHelper.SizeOf(elementType))
+                    {
+                        case sizeof(int):
+                            return new ConvertFromS7<int[]>(ConvertToIntArray<TValue>);
+                        case sizeof(short):
+                            return new ConvertFromS7<short[]>(ConvertToShortArray<TValue>);
+                        case sizeof(byte):
+                            return new ConvertFromS7<byte[]>(ConvertToByteArray<TValue>);
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
             }
 
