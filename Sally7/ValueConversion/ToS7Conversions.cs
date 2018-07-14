@@ -15,6 +15,8 @@ namespace Sally7.ValueConversion
             {
                 switch (Unsafe.SizeOf<TValue>())
                 {
+                    case sizeof(long):
+                        return new ConvertToS7<long>(ConvertFromLong);
                     case sizeof(int):
                         return new ConvertToS7<int>(ConvertFromInt);
                     case sizeof(short):
@@ -38,6 +40,8 @@ namespace Sally7.ValueConversion
                 {
                     switch (ConversionHelper.SizeOf(elementType))
                     {
+                        case sizeof(long):
+                            return new ConvertToS7<long[]>(ConvertFromLongArray);
                         case sizeof(int):
                             return new ConvertToS7<int[]>(ConvertFromIntArray);
                         case sizeof(short):
@@ -53,6 +57,22 @@ namespace Sally7.ValueConversion
             if (type == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
 
             throw new NotImplementedException();
+        }
+
+        private static int ConvertFromLong(in long value, in int length, in Span<byte> output)
+        {
+            ConvertFromInt((int) value >> 32, 1, output);
+            ConvertFromInt((int) value, 1, output.Slice(sizeof(int)));
+
+            return sizeof(long);
+        }
+
+        private static int ConvertFromLongArray(in long[] value, in int length, in Span<byte> output)
+        {
+            for (var i = 0; i < value.Length; i++)
+                ConvertFromLong(value[i], 1, output.Slice(i * sizeof(long)));
+
+            return value.Length * sizeof(long);
         }
 
         private static int ConvertFromInt(in int value, in int length, in Span<byte> output)
