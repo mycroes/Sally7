@@ -137,7 +137,7 @@ namespace Sally7.ValueConversion
         {
             var bytes = Encoding.ASCII.GetBytes(value);
             var span = bytes.AsSpan();
-            if (span.Length > length - 2) span = span.Slice(0, length - 2);
+            if (span.Length > length) span = span.Slice(0, length);
 
             output[0] = (byte) length;
             output[1] = (byte) span.Length;
