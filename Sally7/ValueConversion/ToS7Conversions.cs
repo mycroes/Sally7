@@ -11,10 +11,12 @@ namespace Sally7.ValueConversion
         {
             var type = typeof(TValue);
 
-            if (type.IsValueType)
+            if (type.IsPrimitive || type.IsEnum)
             {
                 switch (Unsafe.SizeOf<TValue>())
                 {
+                    case sizeof(long):
+                        return new ConvertToS7<long>(ConvertFromLong);
                     case sizeof(int):
                         return new ConvertToS7<int>(ConvertFromInt);
                     case sizeof(short):
@@ -31,25 +33,46 @@ namespace Sally7.ValueConversion
 
             if (type.IsArray)
             {
-                type = type.GetElementType() ??
+                var elementType = type.GetElementType() ??
                     throw new Exception($"Type {typeof(TValue)} doesn't have an ElementType.");
 
-                switch (ConversionHelper.SizeOf(type))
+                if (elementType.IsPrimitive || elementType.IsEnum)
                 {
-                    case sizeof(int):
-                        return new ConvertToS7<int[]>(ConvertFromIntArray);
-                    case sizeof(short):
-                        return new ConvertToS7<short[]>(ConvertFromShortArray);
-                    case sizeof(byte):
-                        return new ConvertToS7<byte[]>(ConvertFromByteArray);
-                    default:
-                        throw new NotImplementedException();
+                    switch (ConversionHelper.SizeOf(elementType))
+                    {
+                        case sizeof(long):
+                            return new ConvertToS7<long[]>(ConvertFromLongArray);
+                        case sizeof(int):
+                            return new ConvertToS7<int[]>(ConvertFromIntArray);
+                        case sizeof(short):
+                            return new ConvertToS7<short[]>(ConvertFromShortArray);
+                        case sizeof(byte):
+                            return new ConvertToS7<byte[]>(ConvertFromByteArray);
+                        default:
+                            throw new NotImplementedException();
+                    }
                 }
             }
 
             if (type == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
 
             throw new NotImplementedException();
+        }
+
+        private static int ConvertFromLong(in long value, in int length, in Span<byte> output)
+        {
+            ConvertFromInt((int) value >> 32, 1, output);
+            ConvertFromInt((int) value, 1, output.Slice(sizeof(int)));
+
+            return sizeof(long);
+        }
+
+        private static int ConvertFromLongArray(in long[] value, in int length, in Span<byte> output)
+        {
+            for (var i = 0; i < value.Length; i++)
+                ConvertFromLong(value[i], 1, output.Slice(i * sizeof(long)));
+
+            return value.Length * sizeof(long);
         }
 
         private static int ConvertFromInt(in int value, in int length, in Span<byte> output)
@@ -114,7 +137,7 @@ namespace Sally7.ValueConversion
         {
             var bytes = Encoding.ASCII.GetBytes(value);
             var span = bytes.AsSpan();
-            if (span.Length > length - 2) span = span.Slice(0, length - 2);
+            if (span.Length > length) span = span.Slice(0, length);
 
             output[0] = (byte) length;
             output[1] = (byte) span.Length;
