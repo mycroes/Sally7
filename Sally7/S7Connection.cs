@@ -26,6 +26,24 @@ namespace Sally7
             this.destinationTsap = destinationTsap;
         }
 
+        /// <summary>
+        /// Gets or sets the ReceiveTimeout of the underlying <see cref="TcpClient"/>.
+        /// </summary>
+        public int ReceiveTimeout
+        {
+            get => client.ReceiveTimeout;
+            set => client.ReceiveTimeout = value;
+        }
+
+        /// <summary>
+        /// Gets or sets the SendTimeout of the underlying <see cref="TcpClient"/>.
+        /// </summary>
+        public int SendTimeout
+        {
+            get => client.SendTimeout;
+            set => client.SendTimeout = value;
+        }
+
         public void Close()
         {
             client.Close();
