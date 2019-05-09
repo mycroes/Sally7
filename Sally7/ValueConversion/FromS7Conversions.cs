@@ -62,8 +62,8 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToLong(ref long value, in ReadOnlySpan<byte> input, in int length)
         {
-            value = (long) (input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3]) |
-                (long) (input[4] << 24 | input[5] << 16 | input[6] << 8 | input[7]);
+            value = (long) (uint) (input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3]) << 32 |
+                (uint) (input[4] << 24 | input[5] << 16 | input[6] << 8 | input[7]);
         }
 
         private static void ConvertToLongArray<TTarget>(ref long[] value, in ReadOnlySpan<byte> input, in int length)
