@@ -10,7 +10,7 @@ deploy:
     branch: master
     appveyor_repo_tag: true
 before_build:
-  - cmd: gitversion /l console /output buildserver /updateassemblyinfo /b %APPVEYOR_REPO_BRANCH%
+  - cmd: gitversion /l console /output buildserver /updateassemblyinfo
   - nuget restore
 build:
   verbosity: minimal
