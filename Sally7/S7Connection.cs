@@ -7,7 +7,7 @@ using Sally7.Protocol.IsoOverTcp;
 
 namespace Sally7
 {
-    public class S7Connection
+    public class S7Connection : IDisposable
     {
         private const int IsoOverTcpPort = 102;
 
@@ -47,6 +47,11 @@ namespace Sally7
         public void Close()
         {
             client.Close();
+        }
+
+        public void Dispose()
+        {
+            ((IDisposable) client).Dispose();
         }
 
         public async Task Open()
