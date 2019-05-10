@@ -51,7 +51,7 @@ namespace Sally7
 
         public void Dispose()
         {
-            Close();
+            ((IDisposable) client).Dispose();
         }
 
         public async Task Open()
