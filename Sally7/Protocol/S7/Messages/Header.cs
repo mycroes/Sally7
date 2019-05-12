@@ -10,7 +10,7 @@ namespace Sally7.Protocol.S7.Messages
         public short PduRef;
         public BigEndianShort ParamLength;
         public BigEndianShort DataLength;
-        public byte ErrorClass;
+        public HeaderErrorClass ErrorClass;
         public byte ErrorCode;
 
         public void Init(in MessageType messageType, in BigEndianShort paramLength, in BigEndianShort dataLength)
@@ -30,8 +30,16 @@ namespace Sally7.Protocol.S7.Messages
             if (MessageType != messageType) throw new Exception($"Expected message type {messageType}, received {MessageType}.");
             if (Reserved.High != 0 || Reserved.Low != 0)
                 throw new Exception($"Expected reserved 0, received {(int) Reserved}");
-            if (ErrorClass != 0 || ErrorCode != 0)
-                throw new Exception($"An error was returned. Error class: {ErrorClass}, error code: {ErrorCode}");
+
+            if (MessageType == MessageType.AckData)
+            {
+                if (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0)
+                {
+                    var pec = (ParameterErrorCode) (((int) ErrorClass << 8) | ErrorCode);
+                    throw new Exception(
+                        $"An error occured: Error class: {ErrorClass}, Error code: {ErrorCode}, ParameterErrorCode: {pec}");
+                }
+            }
         }
     }
 }
