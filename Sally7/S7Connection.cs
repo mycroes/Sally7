@@ -54,39 +54,39 @@ namespace Sally7
             ((IDisposable) client).Dispose();
         }
 
-        public async Task Open()
+        public async Task OpenAsync()
         {
             await client.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
             var stream = client.GetStream();
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
-            var length = await ReadTpkt().ConfigureAwait(false);
+            var length = await ReadTpktAsync().ConfigureAwait(false);
             S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
-            length = await ReadTpkt().ConfigureAwait(false);
+            length = await ReadTpktAsync().ConfigureAwait(false);
             S7ConnectionHelpers.ParseCommunicationSetup(buffer.AsSpan().Slice(0, length), out pduSize);
 
             // TPKT + COTP DT + S7 PDU, assumes TPKT + COTP DT don't count as PDU data
             buffer = new byte[pduSize + 7];
         }
 
-        public async Task Read(params IDataItem[] dataItems)
+        public async Task ReadAsync(params IDataItem[] dataItems)
         {
             var stream = client.GetStream();
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildReadRequest(buffer, dataItems)).ConfigureAwait(false);
-            var length = await ReadTpkt().ConfigureAwait(false);
+            var length = await ReadTpktAsync().ConfigureAwait(false);
             S7ConnectionHelpers.ParseReadResponse(buffer.AsSpan().Slice(0, length), dataItems);
         }
 
-        public async Task Write(params IDataItem[] dataItems)
+        public async Task WriteAsync(params IDataItem[] dataItems)
         {
             var stream = client.GetStream();
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildWriteRequest(buffer, dataItems)).ConfigureAwait(false);
-            var length = await ReadTpkt().ConfigureAwait(false);
+            var length = await ReadTpktAsync().ConfigureAwait(false);
             S7ConnectionHelpers.ParseWriteResponse(buffer.AsSpan().Slice(0, length), dataItems);
         }
 
-        private async Task<int> ReadTpkt()
+        private async Task<int> ReadTpktAsync()
         {
             var stream = client.GetStream();
 
