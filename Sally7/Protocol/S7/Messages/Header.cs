@@ -27,11 +27,10 @@ namespace Sally7.Protocol.S7.Messages
         public void Assert(in MessageType messageType)
         {
             if (ProtocolId != 0x32) throw new Exception($"Expected protocol ID {0x32}, received {ProtocolId}.");
-            if (MessageType != messageType) throw new Exception($"Expected message type {messageType}, received {MessageType}.");
             if (Reserved.High != 0 || Reserved.Low != 0)
                 throw new Exception($"Expected reserved 0, received {(int) Reserved}");
 
-            if (MessageType == MessageType.AckData)
+            if (MessageType == MessageType.AckData || MessageType == MessageType.Ack)
             {
                 if (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0)
                 {
@@ -40,6 +39,9 @@ namespace Sally7.Protocol.S7.Messages
                         $"An error occured: Error class: {ErrorClass}, Error code: {ErrorCode}, ParameterErrorCode: {pec}");
                 }
             }
+
+            if (MessageType != messageType)
+                throw new Exception($"Expected message type {messageType}, received {MessageType}.");
         }
     }
 }
