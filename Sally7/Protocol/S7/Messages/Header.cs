@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Sally7.Protocol.S7.Messages
 {
@@ -30,18 +31,33 @@ namespace Sally7.Protocol.S7.Messages
             if (Reserved.High != 0 || Reserved.Low != 0)
                 throw new Exception($"Expected reserved 0, received {(int) Reserved}");
 
-            if (MessageType == MessageType.AckData || MessageType == MessageType.Ack)
-            {
-                if (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0)
-                {
-                    var pec = (ParameterErrorCode) (((int) ErrorClass << 8) | ErrorCode);
-                    throw new Exception(
-                        $"An error occured: Error class: {ErrorClass}, Error code: {ErrorCode}, ParameterErrorCode: {pec}");
-                }
-            }
+            if ((MessageType == MessageType.AckData || MessageType == MessageType.Ack) &&
+                (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0)) throw new Exception(BuildErrorMessage());
 
             if (MessageType != messageType)
                 throw new Exception($"Expected message type {messageType}, received {MessageType}.");
+        }
+
+        private string BuildErrorMessage()
+        {
+            var sb = new StringBuilder("An error was returned during communication:").AppendLine().AppendLine();
+
+            sb.AppendLine($"\tMessage type: {MessageType} / 0x{MessageType:X2}");
+
+            sb.Append("\tError class: ");
+            if (Enum.IsDefined(typeof(HeaderErrorClass), ErrorClass)) sb.Append(ErrorClass).Append(" / ");
+            sb.AppendLine($"0x{ErrorClass:X2}");
+
+            sb.AppendLine($"\tError code: 0x{ErrorCode:X2}");
+
+            var combinedErrorCode = (ParameterErrorCode) (((int) ErrorClass << 8) | ErrorCode);
+            sb.Append("\tCombined error: ");
+            if (Enum.IsDefined(typeof(ParameterErrorCode), combinedErrorCode))
+                sb.Append(combinedErrorCode).Append(" / ");
+
+            sb.AppendLine($"0x{combinedErrorCode:X4}");
+
+            return sb.ToString();
         }
     }
 }
