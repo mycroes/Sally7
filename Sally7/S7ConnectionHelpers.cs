@@ -17,7 +17,7 @@ namespace Sally7
         public static int BuildConnectRequest(in Span<byte> buffer, in Tsap sourceTsap, in Tsap destinationTsap)
         {
             ref var message = ref buffer.Struct<ConnectionRequestMessage>(4);
-            message.Init(PduSizeParameter.PduSize.Pdu2048, sourceTsap, destinationTsap);
+            message.Init(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap);
             var len = 4 + ConnectionRequestMessage.Size;
             buffer.Struct<Tpkt>(0).Init(len);
 
@@ -36,7 +36,7 @@ namespace Sally7
 
             // Error class and error code are not used, so next starts at 7 + 10
             ref var setup = ref buffer.Struct<CommunicationSetup>(17);
-            setup.Init(1, 1, 1920);
+            setup.Init(1, 1, 960);
 
             var len = 17 + CommunicationSetup.Size;
             buffer.Struct<Tpkt>(0).Init(len);
