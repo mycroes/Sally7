@@ -42,20 +42,20 @@ namespace Sally7.Protocol.S7.Messages
         {
             var sb = new StringBuilder("An error was returned during communication:").AppendLine().AppendLine();
 
-            sb.AppendLine($"\tMessage type: {MessageType} / 0x{MessageType:X2}");
+            sb.AppendLine($"\tMessage type: {MessageType} / 0x{MessageType:X}");
 
             sb.Append("\tError class: ");
             if (Enum.IsDefined(typeof(HeaderErrorClass), ErrorClass)) sb.Append(ErrorClass).Append(" / ");
-            sb.AppendLine($"0x{ErrorClass:X2}");
+            sb.AppendLine($"0x{ErrorClass:X}");
 
-            sb.AppendLine($"\tError code: 0x{ErrorCode:X2}");
+            sb.AppendLine($"\tError code: 0x{ErrorCode:X}");
 
             var combinedErrorCode = (ParameterErrorCode) (((int) ErrorClass << 8) | ErrorCode);
             sb.Append("\tCombined error: ");
             if (Enum.IsDefined(typeof(ParameterErrorCode), combinedErrorCode))
                 sb.Append(combinedErrorCode).Append(" / ");
 
-            sb.AppendLine($"0x{combinedErrorCode:X4}");
+            sb.AppendLine($"0x{combinedErrorCode:X}");
 
             return sb.ToString();
         }
