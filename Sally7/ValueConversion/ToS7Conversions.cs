@@ -135,6 +135,14 @@ namespace Sally7.ValueConversion
 
         private static int ConvertFromString(in string value, in int length, in Span<byte> output)
         {
+            if (value == null)
+            {
+                output[0] = (byte) length;
+                output[1] = 0;
+
+                return 2;
+            }
+
             var bytes = Encoding.ASCII.GetBytes(value);
             var span = bytes.AsSpan();
             if (span.Length > length) span = span.Slice(0, length);
