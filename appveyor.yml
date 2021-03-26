@@ -7,7 +7,7 @@ deploy:
   name: nuget
   artifact: /.*\.nupkg/
   on:
-    branch: master
+    branch: main
     appveyor_repo_tag: true
 before_build:
   - cmd: gitversion /l console /output buildserver /updateassemblyinfo
