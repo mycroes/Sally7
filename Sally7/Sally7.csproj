@@ -10,13 +10,6 @@
     <RepositoryUrl>https://github.com/mycroes/Sally7</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>siemens s7 plc</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
