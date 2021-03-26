@@ -12,7 +12,7 @@ namespace Sally7.Protocol.IsoOverTcp
         public byte Reserved;
         public BigEndianShort Length;
 
-        public void Assert()
+        public readonly void Assert()
         {
             if (Version != IsoVersion) throw new Exception("Spec violation: TPKT header has incorrect version.");
             if (Reserved != 0) throw new Exception("Spec violoation: TPKT reserved is not 0.");
@@ -26,6 +26,6 @@ namespace Sally7.Protocol.IsoOverTcp
             Length = length;
         }
 
-        public int MessageLength() => Length - 4;
+        public readonly int MessageLength() => Length - 4;
     }
 }

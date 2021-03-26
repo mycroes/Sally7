@@ -14,7 +14,7 @@ namespace Sally7.Protocol.Cotp
         public BigEndianShort SourceReference;
         public byte ClassAndOption;
 
-        public void Assert()
+        public readonly void Assert()
         {
             if (ConnectionConfirmAndCredit != 0b1101_0000) throw new Exception("Spec violation, Connection Confirm doesn't match.");
             //if (DestinationReference != 46) throw new Exception("Destination reference mismatch.");

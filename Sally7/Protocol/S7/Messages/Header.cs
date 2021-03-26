@@ -25,7 +25,7 @@ namespace Sally7.Protocol.S7.Messages
             DataLength = dataLength;
         }
 
-        public void Assert(in MessageType messageType)
+        public readonly void Assert(in MessageType messageType)
         {
             if (ProtocolId != 0x32) throw new Exception($"Expected protocol ID {0x32}, received {ProtocolId}.");
             if (Reserved.High != 0 || Reserved.Low != 0)
@@ -38,7 +38,7 @@ namespace Sally7.Protocol.S7.Messages
                 throw new Exception($"Expected message type {messageType}, received {MessageType}.");
         }
 
-        private string BuildErrorMessage()
+        private readonly string BuildErrorMessage()
         {
             var sb = new StringBuilder("An error was returned during communication:").AppendLine().AppendLine();
 

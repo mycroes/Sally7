@@ -36,7 +36,7 @@ namespace Sally7
 
             // Error class and error code are not used, so next starts at 7 + 10
             ref var setup = ref buffer.Struct<CommunicationSetup>(17);
-            setup.Init(1, 1, 960);
+            setup.Init(10, 10, 960);
 
             var len = 17 + CommunicationSetup.Size;
             buffer.Struct<Tpkt>(0).Init(len);
@@ -130,7 +130,7 @@ namespace Sally7
             // Analyze returned parameters?
         }
 
-        public static void ParseCommunicationSetup(in ReadOnlySpan<byte> buffer, out int pduSize)
+        public static void ParseCommunicationSetup(in ReadOnlySpan<byte> buffer, out int pduSize, out int maxNumberOfConcurrentRequests)
         {
             DumpBuffer(buffer);
             if (buffer.Length < 19 + CommunicationSetup.Size) throw new Exception("Received data is smaller than TPKT + DT PDU + S7 header + S7 communication setup size.");
@@ -144,6 +144,7 @@ namespace Sally7
             s7CommunicationSetup.Assert(FunctionCode.CommunicationSetup);
 
             pduSize = s7CommunicationSetup.PduSize;
+            maxNumberOfConcurrentRequests = s7CommunicationSetup.MaxAmqCaller;
         }
 
         public static void ParseReadResponse(in ReadOnlySpan<byte> buffer, in IReadOnlyCollection<IDataItem> dataItems)
@@ -226,7 +227,7 @@ namespace Sally7
                 if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
 
                 if (exceptions == null) exceptions = new List<Exception>(1);
-                exceptions.Add(new Exception($"Read of dataItem {dataItems[i]} returned {errorCodes[i]}"));
+                exceptions.Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
             }
         }
 
