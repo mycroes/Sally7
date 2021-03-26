@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Jobs;
 
 namespace Sally7.Benchmarks
 {
