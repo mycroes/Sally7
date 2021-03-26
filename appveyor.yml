@@ -16,6 +16,6 @@ build:
   verbosity: minimal
   project: Sally7.sln
 after_build:
-  - dotnet pack Sally7 -c %CONFIGURATION% /p:Version=%GitVersion_NuGetVersion% --no-build -o ..\artifacts
+  - dotnet pack Sally7 -c %CONFIGURATION% /p:Version=%GitVersion_NuGetVersion% --no-build -o artifacts
 artifacts:
   - path: artifacts\*.*
