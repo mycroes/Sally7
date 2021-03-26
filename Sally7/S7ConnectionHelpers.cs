@@ -226,7 +226,7 @@ namespace Sally7
                 if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
 
                 if (exceptions == null) exceptions = new List<Exception>(1);
-                exceptions.Add(new Exception($"Read of dataItem {dataItems[i]} returned {errorCodes[i]}"));
+                exceptions.Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
             }
         }
 
