@@ -17,7 +17,7 @@ namespace Sally7.Protocol.Cotp
             PduNumberAndEot = 0b1_000_0000;
         }
 
-        public void Assert()
+        public readonly void Assert()
         {
             if (Length != 2) throw new Exception($"Expected length of 2, received {Length}.");
             if (DataIdentifier != 0b1111_0000) throw new Exception($"Invalid DT identifier, expected {0b1111_0000}, received {DataIdentifier}.");
