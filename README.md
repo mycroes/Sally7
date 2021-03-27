@@ -38,5 +38,5 @@ Read 10 bytes from DataBlock 87 starting at address 54
      StartByte = 54
  };
  await connection.ReadAsync(dataItem);
- Console.WriteLine($"Read data: {dataItem.Value}");
+ Console.WriteLine($"Read data: {BitConverter.ToString(dataItem.Value)}");
 ```
