@@ -20,3 +20,23 @@ A good description is available at [The Siemens S7 Communication - Part 1 Genera
 ## The implementation of Sally7
 Sally7 supports the most basic read and write actions to the **DataBlock** area.
 All protocols are mapped to `struct`s and `enum`s with the intent to create a project that is easy to comprehend and extend.
+
+## How to get started
+### Connect to a PLC
+Connect to a S7-1500 PLC at adress 192.168.0.15 on Rack 0, Slot 1
+```
+var connection = Sally7.Plc.ConnectionFactory.GetConnection(host: "192.168.0.15", cpuType: Sally7.Plc.CpuType.S7_1500, rack: 0, slot: 1);
+await connection.OpenAsync();
+```
+### Read a DataBlockDataItem
+Read 10 bytes from DataBlock 87 starting at address 54
+```
+ var dataItem = new DataBlockDataItem<byte[]>
+ {
+     DbNumber = 87,
+     Length = 10,
+     StartByte = 54
+ };
+ await connection.ReadAsync(dataItem);
+ Console.WriteLine($"Read data: {BitConverter.ToString(dataItem.Value)}");
+```
