@@ -9,8 +9,6 @@ namespace Sally7.Internal
 {
     internal class SocketTpktReader
     {
-        private const int TpktSize = 4;
-
         private readonly Socket socket;
         private readonly SocketAwaitable awaitable;
         private readonly SocketAsyncEventArgs args;
@@ -27,14 +25,14 @@ namespace Sally7.Internal
             if (!MemoryMarshal.TryGetArray<byte>(message, out var segment))
                 throw new Exception($"Memory was not array based");
 
-            args.SetBuffer(segment.Array, segment.Offset, TpktSize);
+            args.SetBuffer(segment.Array, segment.Offset, Tpkt.Size);
 
             var count = 0;
             do
             {
                 if (count > 0)
                 {
-                    args.SetBuffer(segment.Offset + count, TpktSize - count);
+                    args.SetBuffer(segment.Offset + count, Tpkt.Size - count);
                 }
 
                 await socket.ReceiveAsync(awaitable);
@@ -44,7 +42,7 @@ namespace Sally7.Internal
 
                 count += args.BytesTransferred;
 
-            } while (count < TpktSize);
+            } while (count < Tpkt.Size);
 
             var receivedLength = GetTpktLength(message.Span);
 

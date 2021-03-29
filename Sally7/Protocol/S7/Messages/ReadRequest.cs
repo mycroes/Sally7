@@ -6,6 +6,13 @@ namespace Sally7.Protocol.S7.Messages
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct ReadRequest
     {
+        /// <summary>
+        /// The size of the <see cref="ReadRequest"/> struct.
+        /// </summary>
+        public const int Size =
+            sizeof(FunctionCode) + // FunctionCode
+            sizeof(byte); // ItemCount
+
         public FunctionCode FunctionCode;
         public byte ItemCount;
 

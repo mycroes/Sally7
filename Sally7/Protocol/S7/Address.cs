@@ -5,6 +5,14 @@ namespace Sally7.Protocol.S7
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Address
     {
+        /// <summary>
+        /// The size of the <see cref="Address"/> struct.
+        /// </summary>
+        public const int Size =
+            sizeof(byte) + // High
+            sizeof(byte) + // Mid
+            sizeof(byte); // Low
+
         public byte High;
         public byte Mid;
         public byte Low;
