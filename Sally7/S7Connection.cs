@@ -48,8 +48,6 @@ namespace Sally7
             this.host = host;
             this.sourceTsap = sourceTsap;
             this.destinationTsap = destinationTsap;
-            this.executorFactory = executorFactory;
-
             this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
             this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
