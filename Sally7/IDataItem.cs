@@ -10,7 +10,7 @@ namespace Sally7
         BigEndianShort DbNumber { get; }
         Address Address { get; }
         BigEndianShort ReadCount { get; }
-        
+
         TransportSize TransportSize { get; }
         VariableType VariableType { get; }
 
