@@ -14,6 +14,8 @@
     <PackageTags>siemens s7 plc</PackageTags>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>1591</WarningsNotAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
