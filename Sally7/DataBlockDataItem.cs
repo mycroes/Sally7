@@ -40,7 +40,7 @@ namespace Sally7
         private Address address;
         private int startByte;
         private int bit;
-        private TValue value;
+        private TValue? value;
         private int length;
 
         public BigEndianShort DbNumber { get; set; }
@@ -52,7 +52,7 @@ namespace Sally7
             set => SetLength(value);
         }
 
-        public TValue Value
+        public TValue? Value
         {
             get => value;
             set => this.value = value;

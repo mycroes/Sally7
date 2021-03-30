@@ -15,7 +15,7 @@ namespace Sally7
         /// <summary>
         /// Gets the data that caused this exception, if known.
         /// </summary>
-        public byte[] ReceivedData { get; }
+        public byte[]? ReceivedData { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="S7CommunicationException"/> class.

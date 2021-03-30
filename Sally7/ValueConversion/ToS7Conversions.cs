@@ -67,8 +67,10 @@ namespace Sally7.ValueConversion
             return sizeof(long);
         }
 
-        private static int ConvertFromLongArray(in long[] value, in int length, in Span<byte> output)
+        private static int ConvertFromLongArray(in long[]? value, in int length, in Span<byte> output)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+
             for (var i = 0; i < value.Length; i++)
                 ConvertFromLong(value[i], 1, output.Slice(i * sizeof(long)));
 
@@ -85,8 +87,10 @@ namespace Sally7.ValueConversion
             return sizeof(int);
         }
 
-        private static int ConvertFromIntArray(in int[] value, in int length, in Span<byte> output)
+        private static int ConvertFromIntArray(in int[]? value, in int length, in Span<byte> output)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+
             for (var i = 0; i < value.Length; i++)
                 ConvertFromInt(value[i], 1, output.Slice(i * sizeof(int)));
 
@@ -101,8 +105,10 @@ namespace Sally7.ValueConversion
             return sizeof(short);
         }
 
-        private static int ConvertFromShortArray(in short[] value, in int length, in Span<byte> output)
+        private static int ConvertFromShortArray(in short[]? value, in int length, in Span<byte> output)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+
             for (var i = 0; i < value.Length; i++)
                 ConvertFromShort(value[i], 1, output.Slice(i * sizeof(short)));
 
@@ -116,15 +122,19 @@ namespace Sally7.ValueConversion
             return sizeof(byte);
         }
 
-        private static int ConvertFromByteArray(in byte[] value, in int length, in Span<byte> output)
+        private static int ConvertFromByteArray(in byte[]? value, in int length, in Span<byte> output)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+
             value.AsSpan().CopyTo(output);
 
             return value.Length;
         }
 
-        private static int ConvertFromBoolArray(in bool[] value, in int length, in Span<byte> output)
+        private static int ConvertFromBoolArray(in bool[]? value, in int length, in Span<byte> output)
         {
+            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+
             var bitArray = new BitArray(value);
             var byteArray = new byte[(length + 7) / 8];
             bitArray.CopyTo(byteArray, 0);
@@ -133,7 +143,7 @@ namespace Sally7.ValueConversion
             return byteArray.Length;
         }
 
-        private static int ConvertFromString(in string value, in int length, in Span<byte> output)
+        private static int ConvertFromString(in string? value, in int length, in Span<byte> output)
         {
             if (value == null)
             {

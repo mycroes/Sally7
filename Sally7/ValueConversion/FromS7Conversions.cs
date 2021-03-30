@@ -66,13 +66,12 @@ namespace Sally7.ValueConversion
                 (uint) (input[4] << 24 | input[5] << 16 | input[6] << 8 | input[7]);
         }
 
-        private static void ConvertToLongArray<TTarget>(ref long[] value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToLongArray<TTarget>(ref long[]? value, in ReadOnlySpan<byte> input, in int length)
         {
-            if (value == null)
-                value = Unsafe.As<long[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<long[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
             for (var i = 0; i < input.Length / sizeof(long); i++)
-                ConvertToLong(ref value[i], input.Slice(i * sizeof(long)), 1);
+                ConvertToLong(ref value![i], input.Slice(i * sizeof(long)), 1);
         }
 
         private static void ConvertToInt(ref int value, in ReadOnlySpan<byte> input, in int length)
@@ -80,12 +79,12 @@ namespace Sally7.ValueConversion
             value = input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
         }
 
-        private static void ConvertToIntArray<TTarget>(ref int[] value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToIntArray<TTarget>(ref int[]? value, in ReadOnlySpan<byte> input, in int length)
         {
-            if (value == null) value = Unsafe.As<int[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<int[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
             for (var i = 0; i < input.Length / sizeof(int); i++)
-                ConvertToInt(ref value[i], input.Slice(i * sizeof(int)), 1);
+                ConvertToInt(ref value![i], input.Slice(i * sizeof(int)), 1);
         }
 
         private static void ConvertToShort(ref short value, in ReadOnlySpan<byte> input, in int length)
@@ -93,13 +92,12 @@ namespace Sally7.ValueConversion
             value = (short) (input[0] << 8 | input[1]);
         }
 
-        private static void ConvertToShortArray<TTarget>(ref short[] value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToShortArray<TTarget>(ref short[]? value, in ReadOnlySpan<byte> input, in int length)
         {
-            if (value == null)
-                value = Unsafe.As<short[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<short[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
             for (var i = 0; i < input.Length / sizeof(short); i++)
-                ConvertToShort(ref value[i], input.Slice(i * sizeof(short)), 1);
+                ConvertToShort(ref value![i], input.Slice(i * sizeof(short)), 1);
         }
 
         private static void ConvertToByte(ref byte value, in ReadOnlySpan<byte> input, in int length)
@@ -107,20 +105,19 @@ namespace Sally7.ValueConversion
             value = input[0];
         }
 
-        private static void ConvertToByteArray<TTarget>(ref byte[] value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToByteArray<TTarget>(ref byte[]? value, in ReadOnlySpan<byte> input, in int length)
         {
-            if (value == null)
-                value = Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
 
             input.CopyTo(value);
         }
 
-        private static void ConvertToBoolArray(ref bool[] value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToBoolArray(ref bool[]? value, in ReadOnlySpan<byte> input, in int length)
         {
             value = new BitArray(input.Slice(0, (length + 7) / 8).ToArray()).Cast<bool>().Take(length).ToArray();
         }
 
-        private static void ConvertToString(ref string value, in ReadOnlySpan<byte> input, in int length)
+        private static void ConvertToString(ref string? value, in ReadOnlySpan<byte> input, in int length)
         {
             value = Encoding.ASCII.GetString(input.Slice(2, input[1]).ToArray());
         }

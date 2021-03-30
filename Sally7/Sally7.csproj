@@ -13,6 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>siemens s7 plc</PackageTags>
     <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

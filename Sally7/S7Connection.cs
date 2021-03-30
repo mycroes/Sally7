@@ -20,7 +20,7 @@ namespace Sally7
         private readonly RequestExecutorFactory executorFactory;
         private readonly MemoryPool<byte> memoryPool;
 
-        private IRequestExecutor requestExecutor;
+        private IRequestExecutor? requestExecutor;
         private int bufferSize;
 
         public static RequestExecutorFactory DefaultRequestExecutorFactory { get; set; } =
@@ -28,7 +28,7 @@ namespace Sally7
 
         public TcpClient TcpClient { get; } = new() {NoDelay = true};
 
-        public IS7ConnectionParameters Parameters { get; private set; }
+        public IS7ConnectionParameters? Parameters { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="S7Connection"/> class with a specified host, source TSAP
@@ -43,7 +43,7 @@ namespace Sally7
         /// <param name="executorFactory">
         /// The factory used to create an executor after the connection is initialized.
         /// </param>
-        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap, in MemoryPool<byte> memoryPool = default, in RequestExecutorFactory executorFactory = default)
+        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap, in MemoryPool<byte>? memoryPool = default, in RequestExecutorFactory? executorFactory = default)
         {
             this.host = host;
             this.sourceTsap = sourceTsap;

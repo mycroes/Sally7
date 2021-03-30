@@ -16,7 +16,7 @@ namespace Sally7.Internal
         private static readonly Action Sentinel = () => { };
 
         public bool WasCompleted;
-        private Action continuation;
+        private Action? continuation;
         public readonly SocketAsyncEventArgs EventArgs;
 
         public SocketAwaitable(SocketAsyncEventArgs eventArgs)

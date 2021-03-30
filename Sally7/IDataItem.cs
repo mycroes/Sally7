@@ -20,6 +20,6 @@ namespace Sally7
 
     public interface IDataItem<TValue> : IDataItem
     {
-        TValue Value { get; set; }
+        TValue? Value { get; set; }
     }
 }

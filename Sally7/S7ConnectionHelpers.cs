@@ -165,7 +165,7 @@ namespace Sally7
                 throw new Exception($"Length of response ({buffer.Length}) does not match length of fixed part ({s7Header.ParamLength}) and data ({s7Header.DataLength}) of S7 Ack Data.");
 
             var data = buffer.Slice(21, s7Header.DataLength);
-            List<Exception> exceptions = null;
+            List<Exception>? exceptions = null;
 
             var offset = 0;
             foreach (var dataItem in dataItems)
@@ -220,7 +220,7 @@ namespace Sally7
                     $"Length of response ({buffer.Length}) does not match length of fixed part ({s7Header.ParamLength}) and data ({s7Header.DataLength}) of S7 Ack Data.");
 
             var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(buffer.Slice(21));
-            List<Exception> exceptions = null;
+            List<Exception>? exceptions = null;
 
             for (var i = 0; i < dataItems.Count; i++)
             {

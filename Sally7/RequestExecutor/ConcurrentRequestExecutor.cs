@@ -172,7 +172,7 @@ namespace Sally7.RequestExecutor
 
             public bool IsCompleted { get; private set; }
             private int length;
-            private Action continuation = Sentinel;
+            private Action? continuation = Sentinel;
 
             public Memory<byte> Buffer => buffer;
 
