@@ -20,7 +20,7 @@ namespace Sally7.Tests
             }).ToArray();
 
             var converter = ConverterFactory.GetFromPlcConverter<int[]>();
-            int[] result = new int[value.Length];
+            var result = new int[value.Length];
             converter(ref result, bytes, value.Length);
 
             Assert.Equal(value, result);
@@ -39,7 +39,7 @@ namespace Sally7.Tests
             }).ToArray();
 
             var converter = ConverterFactory.GetFromPlcConverter<short[]>();
-            short[] result = new short[value.Length];
+            var result = new short[value.Length];
             converter(ref result, bytes, value.Length);
 
             Assert.Equal(value, result);

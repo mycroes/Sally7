@@ -4,6 +4,11 @@ namespace Sally7.Benchmarks
 {
     public class BigEndianArrayToIntConversion
     {
+        public BigEndianArrayToIntConversion()
+        {
+            byteValue = new byte[0];
+        }
+
         [Params(1, 2, 3)]
         public int Value { get; set; }
 

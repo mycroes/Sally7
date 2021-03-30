@@ -41,6 +41,11 @@ namespace Sally7.Benchmarks
 
         private readonly Int32Converter intConverter = new Int32Converter();
 
+        public ConverterLookup()
+        {
+            Message = new byte[0];
+        }
+
         [Params(1, 1 << 9)]
         public int Value { get; set; }
 
@@ -165,7 +170,7 @@ namespace Sally7.Benchmarks
 
         private interface IDataItem<T> : IDataItem
         {
-            T Value { get; set; }
+            T? Value { get; set; }
         }
 
         private interface IConverter
@@ -185,7 +190,7 @@ namespace Sally7.Benchmarks
         private class DataItemWithValue<T> : IDataItem<T>
         {
             public Type ValueType => typeof(T);
-            public T Value { get; set; }
+            public T? Value { get; set; }
         }
 
         private class DataItemWithConverter<T>
@@ -197,7 +202,7 @@ namespace Sally7.Benchmarks
                 this.converter = converter;
             }
 
-            public T Value { get; set; }
+            public T? Value { get; set; }
 
             public void ApplyValue(byte[] message)
             {

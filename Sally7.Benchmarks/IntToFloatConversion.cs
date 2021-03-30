@@ -15,6 +15,11 @@ namespace Sally7.Benchmarks
             [FieldOffset(0)] public float FloatValue;
         }
 
+        public IntToFloatConversion()
+        {
+            byteValue = new byte[0];
+        }
+
         [Params(1, 2, 3)]
         public int Value { get; set; }
 
