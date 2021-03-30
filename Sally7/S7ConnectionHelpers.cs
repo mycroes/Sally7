@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Sally7.Infrastructure;
 using Sally7.Protocol;
@@ -21,8 +20,6 @@ namespace Sally7
             var len = 4 + ConnectionRequestMessage.Size;
             buffer.Struct<Tpkt>(0).Init(len);
 
-            DumpBuffer(buffer.Slice(0, len));
-
             return len;
         }
 
@@ -40,8 +37,6 @@ namespace Sally7
 
             var len = 17 + CommunicationSetup.Size;
             buffer.Struct<Tpkt>(0).Init(len);
-
-            DumpBuffer(buffer.Slice(0, len));
 
             return len;
         }
@@ -111,15 +106,11 @@ namespace Sally7
             buffer.Struct<Data>(4).Init();
             buffer.Struct<Header>(7).Init(MessageType.JobRequest, parameterLength, dataLength);
 
-            DumpBuffer(buffer.Slice(0, len));
-
             return len;
         }
 
         public static void ParseConnectionConfirm(in ReadOnlySpan<byte> buffer)
         {
-            DumpBuffer(buffer);
-
             var fixedPartLength = buffer[5];
             if (fixedPartLength < ConnectionConfirm.Size)
                 throw new Exception("Received data is smaller than Connection Confirm fixed part.");
@@ -132,7 +123,6 @@ namespace Sally7
 
         public static void ParseCommunicationSetup(in ReadOnlySpan<byte> buffer, out int pduSize, out int maxNumberOfConcurrentRequests)
         {
-            DumpBuffer(buffer);
             if (buffer.Length < 19 + CommunicationSetup.Size) throw new Exception("Received data is smaller than TPKT + DT PDU + S7 header + S7 communication setup size.");
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -149,8 +139,6 @@ namespace Sally7
 
         public static void ParseReadResponse(in ReadOnlySpan<byte> buffer, in IReadOnlyCollection<IDataItem> dataItems)
         {
-            DumpBuffer(buffer);
-
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
 
@@ -200,8 +188,6 @@ namespace Sally7
 
         public static void ParseWriteResponse(in ReadOnlySpan<byte> buffer, in IReadOnlyList<IDataItem> dataItems)
         {
-            DumpBuffer(buffer);
-
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
 
@@ -229,12 +215,6 @@ namespace Sally7
                 if (exceptions == null) exceptions = new List<Exception>(1);
                 exceptions.Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
             }
-        }
-
-        private static void DumpBuffer(in ReadOnlySpan<byte> buffer, [CallerMemberName] in string caller = null)
-        {
-            //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => $"{b:X}"))}");
-            //Console.WriteLine($"{caller}: {string.Join(", ", buffer.Take(length).Select(b => b))}");
         }
     }
 }
