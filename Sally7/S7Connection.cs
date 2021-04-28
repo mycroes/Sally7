@@ -17,6 +17,7 @@ namespace Sally7
         private readonly string host;
         private readonly Tsap sourceTsap;
         private readonly Tsap destinationTsap;
+        private readonly int tcpPort;
         private readonly RequestExecutorFactory executorFactory;
         private readonly MemoryPool<byte> memoryPool;
 
@@ -39,15 +40,17 @@ namespace Sally7
         /// <param name="host">The PLC host, specified as IP address or hostname.</param>
         /// <param name="sourceTsap">The local TSAP for the connection.</param>
         /// <param name="destinationTsap">The remote TSAP for the connection.</param>
+        /// <param name="tcpPort"></param>
         /// <param name="memoryPool">The memory pool used to allocate buffers.</param>
         /// <param name="executorFactory">
         /// The factory used to create an executor after the connection is initialized.
         /// </param>
-        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap, in MemoryPool<byte>? memoryPool = default, in RequestExecutorFactory? executorFactory = default)
+        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap, in int? tcpPort, in MemoryPool<byte>? memoryPool = default, in RequestExecutorFactory? executorFactory = default)
         {
             this.host = host;
             this.sourceTsap = sourceTsap;
             this.destinationTsap = destinationTsap;
+            this.tcpPort = tcpPort ?? IsoOverTcpPort;
             this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
             this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
@@ -97,7 +100,7 @@ namespace Sally7
 
         public async Task OpenAsync()
         {
-            await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+            await TcpClient.ConnectAsync(host, tcpPort).ConfigureAwait(false);
             var stream = TcpClient.GetStream();
 
             // TODO: use memory from the pool
