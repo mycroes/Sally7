@@ -13,6 +13,7 @@ namespace Sally7
     public class S7Connection : IDisposable
     {
         private const int IsoOverTcpPort = 102;
+        private const double DefaultConnectionTimeoutInMilliseconds = 1000.0;
 
         private readonly string host;
         private readonly Tsap sourceTsap;
@@ -50,6 +51,8 @@ namespace Sally7
             this.destinationTsap = destinationTsap;
             this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
             this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+
+            ConnectionTimeout = DefaultConnectionTimeoutInMilliseconds;
         }
 
         /// <summary>
@@ -65,6 +68,11 @@ namespace Sally7
             destinationTsap, default)
         {
         }
+
+        /// <summary>
+        /// Gets or sets the connection timeout in milliseconds.
+        /// </summary>
+        public double ConnectionTimeout { get; set; }
 
         /// <summary>
         /// Gets or sets the ReceiveTimeout of the underlying <see cref="TcpClient"/>.
@@ -97,7 +105,14 @@ namespace Sally7
 
         public async Task OpenAsync()
         {
-            await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(ConnectionTimeout));
+            var connectTask = TcpClient.ConnectAsync(host, IsoOverTcpPort);
+
+            if (await Task.WhenAny(connectTask, cancelTask).ConfigureAwait(false) == cancelTask)
+            {
+                throw new TimeoutException($"Failed to connect within '{ConnectionTimeout}' milliseconds");
+            }
+
             var stream = TcpClient.GetStream();
 
             // TODO: use memory from the pool
