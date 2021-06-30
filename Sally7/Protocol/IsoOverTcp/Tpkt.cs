@@ -6,6 +6,18 @@ namespace Sally7.Protocol.IsoOverTcp
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     internal struct Tpkt
     {
+        /// <summary>
+        /// The size of the <see cref="Tpkt"/> struct.
+        /// <para>
+        /// The TPKT is not part of the PDU data and it's length should not be considered for the maximum PDU
+        /// size negotiated with the PLC.
+        /// </para>
+        /// </summary>
+        public const int Size =
+            sizeof(byte) + // Version
+            sizeof(byte) + // Reserved
+            BigEndianShort.Size; // Length
+
         private const byte IsoVersion = 3;
 
         public byte Version;

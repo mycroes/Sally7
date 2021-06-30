@@ -5,6 +5,13 @@ namespace Sally7.Protocol
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct BigEndianShort
     {
+        /// <summary>
+        /// The size of the <see cref="BigEndianShort"/> struct.
+        /// </summary>
+        public const int Size =
+            sizeof(byte) + // High
+            sizeof(byte); // Low
+
         public byte High;
         public byte Low;
 

@@ -5,6 +5,28 @@ namespace Sally7.Protocol.S7.Messages
 {
     internal struct Header
     {
+        /// <summary>
+        /// The size of the <see cref="Header"/> struct.
+        /// </summary>
+        public const int Size = sizeof(byte) + // ProtocolId
+            sizeof(MessageType) + // MessageType
+            BigEndianShort.Size + // Reserved
+            sizeof(short) + // PduRef
+            BigEndianShort.Size + // ParamLength
+            BigEndianShort.Size + // DataLength
+            sizeof(HeaderErrorClass) + // ErrorClass
+            sizeof(byte); // ErrorCode
+
+        /// <summary>
+        /// The size of the error data.
+        /// <para>
+        /// The S7 header in requests does not contain error data, subtract the <see cref="ErrorSize"/> to
+        /// get the actual size of the request header.
+        /// </para>
+        /// </summary>
+        public const int ErrorSize = sizeof(HeaderErrorClass) // ErrorClass
+            + sizeof(byte); // ErrorCode
+
         public byte ProtocolId;
         public MessageType MessageType;
         public BigEndianShort Reserved;
