@@ -61,7 +61,7 @@ namespace Sally7.ValueConversion
 
         private static int ConvertFromLong(in long value, in int length, in Span<byte> output)
         {
-            ConvertFromInt((int) value >> 32, 1, output);
+            ConvertFromInt((int) (value >> 32), 1, output);
             ConvertFromInt((int) value, 1, output.Slice(sizeof(int)));
 
             return sizeof(long);
