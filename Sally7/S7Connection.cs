@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Buffers;
+using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Sally7.Infrastructure;
 using Sally7.Internal;
@@ -13,7 +15,6 @@ namespace Sally7
     public class S7Connection : IDisposable
     {
         private const int IsoOverTcpPort = 102;
-        private const double DefaultConnectionTimeoutInMilliseconds = 1000.0;
 
         private readonly string host;
         private readonly Tsap sourceTsap;
@@ -51,8 +52,6 @@ namespace Sally7
             this.destinationTsap = destinationTsap;
             this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
             this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
-
-            ConnectionTimeout = DefaultConnectionTimeoutInMilliseconds;
         }
 
         /// <summary>
@@ -68,11 +67,6 @@ namespace Sally7
             destinationTsap, default)
         {
         }
-
-        /// <summary>
-        /// Gets or sets the connection timeout in milliseconds.
-        /// </summary>
-        public double ConnectionTimeout { get; set; }
 
         /// <summary>
         /// Gets or sets the ReceiveTimeout of the underlying <see cref="TcpClient"/>.
@@ -105,20 +99,32 @@ namespace Sally7
 
         public async Task OpenAsync()
         {
-            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(ConnectionTimeout));
+            await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+            await openAsync();
+        }
+
+        public async Task OpenAsync(double connectionTimeout)
+        {
+            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(connectionTimeout));
             var connectTask = TcpClient.ConnectAsync(host, IsoOverTcpPort);
 
             if (await Task.WhenAny(connectTask, cancelTask).ConfigureAwait(false) == cancelTask)
             {
-                throw new TimeoutException($"Failed to connect within '{ConnectionTimeout}' milliseconds");
+                throw new TimeoutException($"Failed to connect within '{connectionTimeout}' milliseconds");
             }
 
+            await openAsync();
+        }
+
+        async Task openAsync()
+        {
             var stream = TcpClient.GetStream();
 
             // TODO: use memory from the pool
             var buffer = new byte[100];
 
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
+            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap))
+                .ConfigureAwait(false);
             var length = await ReadTpktAsync(stream, buffer).ConfigureAwait(false);
             S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
