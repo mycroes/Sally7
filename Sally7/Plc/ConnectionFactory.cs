@@ -41,9 +41,9 @@ namespace Sally7.Plc
             }
         }
 
-        public static S7Connection GetConnection(string host, CpuType cpuType, int? rack = null, int? slot = null)
+        public static S7Connection GetConnection(string host, CpuType cpuType, int? rack = null, int? slot = null, int? tcpPort = null)
         {
-            return new S7Connection(host, GetSourceTsap(cpuType), GetDestinationTsap(cpuType, rack, slot));
+            return new S7Connection(host, GetSourceTsap(cpuType), GetDestinationTsap(cpuType, rack, slot), tcpPort);
         }
     }
 }
