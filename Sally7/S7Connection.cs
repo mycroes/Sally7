@@ -103,9 +103,9 @@ namespace Sally7
             await openAsync();
         }
 
-        public async Task OpenAsync(double connectionTimeout)
+        public async Task OpenAsync(TimeSpan connectionTimeout)
         {
-            var cancelTask = Task.Delay(TimeSpan.FromMilliseconds(connectionTimeout));
+            var cancelTask = Task.Delay(connectionTimeout);
             var connectTask = TcpClient.ConnectAsync(host, IsoOverTcpPort);
 
             if (await Task.WhenAny(connectTask, cancelTask).ConfigureAwait(false) == cancelTask)
