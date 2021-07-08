@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Buffers;
+using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Sally7.Infrastructure;
 using Sally7.Internal;
@@ -98,12 +100,31 @@ namespace Sally7
         public async Task OpenAsync()
         {
             await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+            await openAsync();
+        }
+
+        public async Task OpenAsync(TimeSpan connectionTimeout)
+        {
+            var cancelTask = Task.Delay(connectionTimeout);
+            var connectTask = TcpClient.ConnectAsync(host, IsoOverTcpPort);
+
+            if (await Task.WhenAny(connectTask, cancelTask).ConfigureAwait(false) == cancelTask)
+            {
+                throw new TimeoutException($"Failed to connect within '{connectionTimeout}' milliseconds");
+            }
+
+            await openAsync();
+        }
+
+        async Task openAsync()
+        {
             var stream = TcpClient.GetStream();
 
             // TODO: use memory from the pool
             var buffer = new byte[100];
 
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
+            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap))
+                .ConfigureAwait(false);
             var length = await ReadTpktAsync(stream, buffer).ConfigureAwait(false);
             S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
