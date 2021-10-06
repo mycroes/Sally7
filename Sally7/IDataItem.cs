@@ -14,8 +14,8 @@ namespace Sally7
         TransportSize TransportSize { get; }
         VariableType VariableType { get; }
 
-        int WriteValue(in Span<byte> output);
-        void ReadValue(in ReadOnlySpan<byte> input);
+        int WriteValue(Span<byte> output);
+        void ReadValue(ReadOnlySpan<byte> input);
     }
 
     public interface IDataItem<TValue> : IDataItem

@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 
 namespace Sally7.ValueConversion
 {
-    public delegate int ConvertToS7<TValue>(in TValue? value, in int length, in Span<byte> output);
+    public delegate int ConvertToS7<TValue>(TValue? value, int length, Span<byte> output);
 
-    public delegate void ConvertFromS7<TValue>(ref TValue? value, in ReadOnlySpan<byte> input, in int length);
+    public delegate void ConvertFromS7<TValue>(ref TValue? value, ReadOnlySpan<byte> input, int length);
 
     internal static class ConverterFactory
     {

@@ -13,7 +13,7 @@ namespace Sally7
 {
     internal static class S7ConnectionHelpers
     {
-        public static int BuildConnectRequest(in Span<byte> buffer, in Tsap sourceTsap, in Tsap destinationTsap)
+        public static int BuildConnectRequest(Span<byte> buffer, Tsap sourceTsap, Tsap destinationTsap)
         {
             ref var message = ref buffer.Struct<ConnectionRequestMessage>(4);
             message.Init(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap);
@@ -23,7 +23,7 @@ namespace Sally7
             return len;
         }
 
-        public static int BuildCommunicationSetup(in Span<byte> buffer)
+        public static int BuildCommunicationSetup(Span<byte> buffer)
         {
             ref var data = ref buffer.Struct<Data>(4);
             data.Init();
@@ -41,7 +41,7 @@ namespace Sally7
             return len;
         }
 
-        public static int BuildReadRequest(in Span<byte> buffer, in IReadOnlyList<IDataItem> dataItems)
+        public static int BuildReadRequest(Span<byte> buffer, IReadOnlyList<IDataItem> dataItems)
         {
             ref var read = ref buffer.Struct<ReadRequest>(17);
             read.FunctionCode = FunctionCode.Read;
@@ -56,7 +56,7 @@ namespace Sally7
             return BuildS7JobRequest(buffer, dataItems.Count * 12 + 2, 0);
         }
 
-        public static int BuildWriteRequest(in Span<byte> buffer, in IReadOnlyList<IDataItem> dataItems)
+        public static int BuildWriteRequest(Span<byte> buffer, IReadOnlyList<IDataItem> dataItems)
         {
             var span = buffer.Slice(17); // Skip header
             span[0] = (byte) FunctionCode.Write;
@@ -99,7 +99,7 @@ namespace Sally7
             requestItem.VariableType = dataItem.VariableType;
         }
 
-        private static int BuildS7JobRequest(in Span<byte> buffer, in BigEndianShort parameterLength, in BigEndianShort dataLength)
+        private static int BuildS7JobRequest(Span<byte> buffer, BigEndianShort parameterLength, BigEndianShort dataLength)
         {
             var len = parameterLength + dataLength + 17; // Error omitted
             buffer.Struct<Tpkt>(0).Init(len);
@@ -109,7 +109,7 @@ namespace Sally7
             return len;
         }
 
-        public static void ParseConnectionConfirm(in ReadOnlySpan<byte> buffer)
+        public static void ParseConnectionConfirm(ReadOnlySpan<byte> buffer)
         {
             var fixedPartLength = buffer[5];
             if (fixedPartLength < ConnectionConfirm.Size)
@@ -121,7 +121,7 @@ namespace Sally7
             // Analyze returned parameters?
         }
 
-        public static void ParseCommunicationSetup(in ReadOnlySpan<byte> buffer, out int pduSize, out int maxNumberOfConcurrentRequests)
+        public static void ParseCommunicationSetup(ReadOnlySpan<byte> buffer, out int pduSize, out int maxNumberOfConcurrentRequests)
         {
             if (buffer.Length < 19 + CommunicationSetup.Size) throw new Exception("Received data is smaller than TPKT + DT PDU + S7 header + S7 communication setup size.");
             ref readonly var dt = ref buffer.Struct<Data>(4);
@@ -137,7 +137,7 @@ namespace Sally7
             maxNumberOfConcurrentRequests = s7CommunicationSetup.MaxAmqCaller;
         }
 
-        public static void ParseReadResponse(in ReadOnlySpan<byte> buffer, in IReadOnlyCollection<IDataItem> dataItems)
+        public static void ParseReadResponse(ReadOnlySpan<byte> buffer, IReadOnlyCollection<IDataItem> dataItems)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -186,7 +186,7 @@ namespace Sally7
             if (exceptions != null) throw new AggregateException(exceptions);
         }
 
-        public static void ParseWriteResponse(in ReadOnlySpan<byte> buffer, in IReadOnlyList<IDataItem> dataItems)
+        public static void ParseWriteResponse(ReadOnlySpan<byte> buffer, IReadOnlyList<IDataItem> dataItems)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();

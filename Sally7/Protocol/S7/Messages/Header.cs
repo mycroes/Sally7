@@ -14,7 +14,7 @@ namespace Sally7.Protocol.S7.Messages
         public HeaderErrorClass ErrorClass;
         public byte ErrorCode;
 
-        public void Init(in MessageType messageType, in BigEndianShort paramLength, in BigEndianShort dataLength)
+        public void Init(MessageType messageType, BigEndianShort paramLength, BigEndianShort dataLength)
         {
             ProtocolId = 0x32;
             MessageType = messageType;
@@ -25,7 +25,7 @@ namespace Sally7.Protocol.S7.Messages
             DataLength = dataLength;
         }
 
-        public readonly void Assert(in MessageType messageType)
+        public readonly void Assert(MessageType messageType)
         {
             if (ProtocolId != 0x32) throw new Exception($"Expected protocol ID {0x32}, received {ProtocolId}.");
             if (Reserved.High != 0 || Reserved.Low != 0)

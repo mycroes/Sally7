@@ -9,7 +9,7 @@ namespace Sally7.Protocol.Cotp
         public byte Length;
         public Tsap Tsap;
 
-        public void Init(in ParameterCode code, in Tsap tsap)
+        public void Init(ParameterCode code, Tsap tsap)
         {
             Code = code;
             Tsap = tsap;
