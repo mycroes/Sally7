@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Sally7.Infrastructure;
 using Sally7.Protocol.IsoOverTcp;
 
 namespace Sally7.Internal
@@ -66,19 +67,25 @@ namespace Sally7.Internal
         {
             try
             {
-                ref readonly var tpkt = ref MemoryMarshal.Cast<byte, Tpkt>(span)[0];
+                ref readonly var tpkt = ref span.Struct<Tpkt>(0);
                 tpkt.Assert();
 
                 return tpkt.Length;
             }
             catch (Exception e)
             {
-                var data = span.ToArray();
+                Throw(span, e);
+                return -1;  // just to make the compiler happy
 
-                throw new S7CommunicationException(
-                    $"Failed to parse TPKT from response ({string.Join(", ", data.Select(b => b.ToString("X2")))}), " +
-                    $"see the {nameof(S7CommunicationException.InnerException)} property for details.", e,
-                    span.ToArray());
+                static void Throw(ReadOnlySpan<byte> span, Exception e)
+                {
+                    var data = span.ToArray();
+
+                    throw new S7CommunicationException(
+                        $"Failed to parse TPKT from response ({string.Join(", ", data.Select(b => b.ToString("X2")))}), " +
+                        $"see the {nameof(S7CommunicationException.InnerException)} property for details.", e,
+                        data);
+                }
             }
         }
     }

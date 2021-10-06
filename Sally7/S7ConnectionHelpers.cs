@@ -59,8 +59,8 @@ namespace Sally7
         public static int BuildWriteRequest(Span<byte> buffer, IReadOnlyList<IDataItem> dataItems)
         {
             var span = buffer.Slice(17); // Skip header
-            span[0] = (byte) FunctionCode.Write;
             span[1] = (byte) dataItems.Count;
+            span[0] = (byte) FunctionCode.Write;
             var parameters = MemoryMarshal.Cast<byte, RequestItem>(span.Slice(2));
             var fnParameterLength = dataItems.Count * 12 + 2;
             var dataLength = 0;
@@ -78,7 +78,7 @@ namespace Sally7
                 dataItem.Count = dataItem.TransportSize.IsSizeInBytes() ? length : length << 3;
 
                 length += 4; // Add sizeof(DataItem)
-                if (length % 2 == 1)
+                if ((length & 1) == 1)        // bit-hack for length % 2 == 1
                 {
                     data[++length] = 0;
                 }
@@ -113,7 +113,10 @@ namespace Sally7
         {
             var fixedPartLength = buffer[5];
             if (fixedPartLength < ConnectionConfirm.Size)
-                throw new Exception("Received data is smaller than Connection Confirm fixed part.");
+            {
+                Throw();
+                static void Throw() => throw new Exception("Received data is smaller than Connection Confirm fixed part.");
+            }
 
             ref readonly var cc = ref buffer.Struct<ConnectionConfirm>(5);
             cc.Assert();
@@ -123,7 +126,12 @@ namespace Sally7
 
         public static void ParseCommunicationSetup(ReadOnlySpan<byte> buffer, out int pduSize, out int maxNumberOfConcurrentRequests)
         {
-            if (buffer.Length < 19 + CommunicationSetup.Size) throw new Exception("Received data is smaller than TPKT + DT PDU + S7 header + S7 communication setup size.");
+            if (buffer.Length < 19 + CommunicationSetup.Size)
+            {
+                Throw();
+                static void Throw() => throw new Exception("Received data is smaller than TPKT + DT PDU + S7 header + S7 communication setup size.");
+            }
+
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
 
@@ -144,13 +152,20 @@ namespace Sally7
 
             ref readonly var s7Header = ref buffer.Struct<Header>(7);
             s7Header.Assert(MessageType.AckData);
-            if (s7Header.ParamLength != 2) throw new Exception($"Read returned unexpected parameter length {s7Header.ParamLength}");
+            if (s7Header.ParamLength != 2)
+            {
+                Throw(s7Header.ParamLength);
+                static void Throw(int paramLength) => throw new Exception($"Read returned unexpected parameter length {paramLength}");
+            }
 
             ref readonly var response = ref buffer.Struct<ReadRequest>(19);
             response.Assert((byte) dataItems.Count);
 
             if (buffer.Length != s7Header.DataLength + 21)
-                throw new Exception($"Length of response ({buffer.Length}) does not match length of fixed part ({s7Header.ParamLength}) and data ({s7Header.DataLength}) of S7 Ack Data.");
+            {
+                Throw(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
+                static void Throw(int bufferLength, int paramLength, int dataLength) => throw new Exception($"Length of response ({bufferLength}) does not match length of fixed part ({paramLength}) and data ({dataLength}) of S7 Ack Data.");
+            }
 
             var data = buffer.Slice(21, s7Header.DataLength);
             List<Exception>? exceptions = null;
@@ -169,16 +184,13 @@ namespace Sally7
                     dataItem.ReadValue(data.Slice(4, size));
 
                     // Odd sizes are padded in the message
-                    if (size % 2 == 1) size++;
+                    if ((size & 1) == 1) size++;      // bit-hack for size % 2 == 1
 
                     offset = size + 4;
                 }
                 else
                 {
-                    if (exceptions == null) exceptions = new List<Exception>(1);
-
-                    exceptions.Add(
-                        new Exception($"Read of dataItem {dataItem} returned {di.ErrorCode}"));
+                    (exceptions ??= new List<Exception>(1)).Add(new Exception($"Read of dataItem {dataItem} returned {di.ErrorCode}"));
                     offset = 4;
                 }
             }
@@ -194,16 +206,27 @@ namespace Sally7
             ref readonly var s7Header = ref buffer.Struct<Header>(7);
             s7Header.Assert(MessageType.AckData);
             if (s7Header.ParamLength != 2)
-                throw new Exception($"Write returned unexpected parameter length {s7Header.ParamLength}");
+            {
+                Throw(s7Header.ParamLength);
+                static void Throw(int paramLength) => throw new Exception($"Write returned unexpected parameter length {paramLength}");
+            }
 
-            if ((FunctionCode) buffer[19] != FunctionCode.Write)
-                throw new Exception($"Expected FunctionCode {FunctionCode.Write}, received {(FunctionCode) buffer[19]}.");
+            if ((FunctionCode)buffer[19] != FunctionCode.Write)
+            {
+                Throw((FunctionCode)buffer[19]);
+                static void Throw(FunctionCode actual) => throw new Exception($"Expected FunctionCode {FunctionCode.Write}, received {actual}.");
+            }
             if (buffer[20] != dataItems.Count)
-                throw new Exception($"Expected {dataItems.Count} items in write response, received {buffer[20]}.");
+            {
+                Throw(dataItems.Count, buffer[20]);
+                static void Throw(int expected, byte actual) => throw new Exception($"Expected {expected} items in write response, received {actual}.");
+            }
 
             if (buffer.Length != s7Header.DataLength + 21)
-                throw new Exception(
-                    $"Length of response ({buffer.Length}) does not match length of fixed part ({s7Header.ParamLength}) and data ({s7Header.DataLength}) of S7 Ack Data.");
+            {
+                Throw(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
+                static void Throw(int bufferLength, int paramLength, int dataLength) => throw new Exception($"Length of response ({bufferLength}) does not match length of fixed part ({paramLength}) and data ({dataLength}) of S7 Ack Data.");
+            }
 
             var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(buffer.Slice(21));
             List<Exception>? exceptions = null;
@@ -212,9 +235,10 @@ namespace Sally7
             {
                 if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
 
-                if (exceptions == null) exceptions = new List<Exception>(1);
-                exceptions.Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
+                (exceptions ??= new List<Exception>(1)).Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
             }
+
+            if (exceptions != null) throw new AggregateException(exceptions);
         }
     }
 }

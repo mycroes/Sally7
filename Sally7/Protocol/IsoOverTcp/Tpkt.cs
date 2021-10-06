@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Sally7.Protocol.IsoOverTcp
@@ -12,11 +13,26 @@ namespace Sally7.Protocol.IsoOverTcp
         public byte Reserved;
         public BigEndianShort Length;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Assert()
         {
-            if (Version != IsoVersion) throw new Exception("Spec violation: TPKT header has incorrect version.");
-            if (Reserved != 0) throw new Exception("Spec violoation: TPKT reserved is not 0.");
-            if (Length.High == 0 && Length.Low < 7) throw new Exception("Spec violation: TPKT length is smaller than 7.");
+            if (Version != IsoVersion)
+            {
+                Throw();
+                static void Throw() => throw new Exception("Spec violation: TPKT header has incorrect version.");
+            }
+
+            if (Reserved != 0)
+            {
+                Throw();
+                static void Throw() => throw new Exception("Spec violoation: TPKT reserved is not 0.");
+            }
+
+            if (Length.High == 0 && Length.Low < 7)
+            {
+                Throw();
+                static void Throw() => throw new Exception("Spec violation: TPKT length is smaller than 7.");
+            }
         }
 
         public void Init(BigEndianShort length)

@@ -18,8 +18,7 @@ namespace Sally7.Protocol.S7.Messages
         {
             ProtocolId = 0x32;
             MessageType = messageType;
-            Reserved.High = 0;
-            Reserved.Low = 0;
+            Reserved = default;
             PduRef = 1;
             ParamLength = paramLength;
             DataLength = dataLength;
@@ -27,35 +26,50 @@ namespace Sally7.Protocol.S7.Messages
 
         public readonly void Assert(MessageType messageType)
         {
-            if (ProtocolId != 0x32) throw new Exception($"Expected protocol ID {0x32}, received {ProtocolId}.");
+            if (ProtocolId != 0x32)
+            {
+                Throw(ProtocolId);
+                static void Throw(byte actual) => throw new Exception($"Expected protocol ID {0x32}, received {actual}.");
+            }
+
             if (Reserved.High != 0 || Reserved.Low != 0)
-                throw new Exception($"Expected reserved 0, received {(int) Reserved}");
+            {
+                Throw(Reserved);
+                static void Throw(BigEndianShort reserved) => throw new Exception($"Expected reserved 0, received {(int) reserved}");
+            }
 
             if ((MessageType == MessageType.AckData || MessageType == MessageType.Ack) &&
-                (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0)) throw new Exception(BuildErrorMessage());
+                (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0))
+            {
+                Throw(MessageType, ErrorClass, ErrorCode);
+                static void Throw(MessageType messageType, HeaderErrorClass errorClass, byte errorCode) => throw new Exception(BuildErrorMessage(messageType, errorClass, errorCode));
+            }
 
             if (MessageType != messageType)
-                throw new Exception($"Expected message type {messageType}, received {MessageType}.");
+            {
+                Throw(messageType, MessageType);
+                static void Throw(MessageType expected, MessageType actual) => throw new Exception($"Expected message type {expected}, received {actual}.");
+            }
         }
 
-        private readonly string BuildErrorMessage()
+        private static string BuildErrorMessage(MessageType messageType, HeaderErrorClass errorClass, byte errorCode)
         {
             var sb = new StringBuilder("An error was returned during communication:").AppendLine().AppendLine();
 
-            sb.AppendLine($"\tMessage type: {MessageType} / 0x{MessageType:X}");
+            sb.Append("\tMessage type: ").Append(messageType).Append(" / 0x").AppendFormat("{0:X}", messageType).AppendLine();
 
             sb.Append("\tError class: ");
-            if (Enum.IsDefined(typeof(HeaderErrorClass), ErrorClass)) sb.Append(ErrorClass).Append(" / ");
-            sb.AppendLine($"0x{ErrorClass:X}");
+            if (Enum.IsDefined(typeof(HeaderErrorClass), errorClass)) sb.Append(errorClass).Append(" / ");
+            sb.Append("0x").AppendFormat("{0:X}", errorClass).AppendLine();
 
-            sb.AppendLine($"\tError code: 0x{ErrorCode:X}");
+            sb.Append("\tError code: 0x").AppendFormat("{0:X}", errorCode).AppendLine();
 
-            var combinedErrorCode = (ParameterErrorCode) (((int) ErrorClass << 8) | ErrorCode);
+            var combinedErrorCode = (ParameterErrorCode) (((int)errorClass << 8) | errorCode);
             sb.Append("\tCombined error: ");
             if (Enum.IsDefined(typeof(ParameterErrorCode), combinedErrorCode))
                 sb.Append(combinedErrorCode).Append(" / ");
 
-            sb.AppendLine($"0x{combinedErrorCode:X}");
+            sb.Append("0x").AppendFormat("{0:X}", combinedErrorCode).AppendLine();
 
             return sb.ToString();
         }

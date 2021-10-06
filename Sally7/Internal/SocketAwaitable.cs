@@ -54,7 +54,10 @@ namespace Sally7.Internal
         public void GetResult()
         {
             if (EventArgs.SocketError != SocketError.Success)
-                throw new SocketException((int) EventArgs.SocketError);
+            {
+                Throw();
+                void Throw() => throw new SocketException((int) EventArgs.SocketError);
+            }
         }
     }
 }
