@@ -62,7 +62,7 @@ namespace Sally7.Internal
             return receivedLength;
         }
 
-        private static int GetTpktLength(in ReadOnlySpan<byte> span)
+        private static int GetTpktLength(ReadOnlySpan<byte> span)
         {
             try
             {

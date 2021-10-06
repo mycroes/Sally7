@@ -10,7 +10,7 @@ using Sally7.RequestExecutor;
 
 namespace Sally7
 {
-    public class S7Connection : IDisposable
+    public sealed class S7Connection : IDisposable
     {
         private const int IsoOverTcpPort = 102;
 
@@ -43,7 +43,7 @@ namespace Sally7
         /// <param name="executorFactory">
         /// The factory used to create an executor after the connection is initialized.
         /// </param>
-        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap, in MemoryPool<byte>? memoryPool = default, in RequestExecutorFactory? executorFactory = default)
+        public S7Connection(string host, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default, RequestExecutorFactory? executorFactory = default)
         {
             this.host = host;
             this.sourceTsap = sourceTsap;
@@ -61,7 +61,7 @@ namespace Sally7
         /// <param name="host">The PLC host, specified as IP address or hostname.</param>
         /// <param name="sourceTsap">The local TSAP for the connection.</param>
         /// <param name="destinationTsap">The remote TSAP for the connection.</param>
-        public S7Connection(in string host, in Tsap sourceTsap, in Tsap destinationTsap) : this(host, sourceTsap,
+        public S7Connection(string host, Tsap sourceTsap, Tsap destinationTsap) : this(host, sourceTsap,
             destinationTsap, default)
         {
         }

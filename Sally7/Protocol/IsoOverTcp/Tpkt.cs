@@ -19,7 +19,7 @@ namespace Sally7.Protocol.IsoOverTcp
             if (Length.High == 0 && Length.Low < 7) throw new Exception("Spec violation: TPKT length is smaller than 7.");
         }
 
-        public void Init(in BigEndianShort length)
+        public void Init(BigEndianShort length)
         {
             Version = IsoVersion;
             Reserved = 0;
