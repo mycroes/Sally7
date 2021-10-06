@@ -10,6 +10,28 @@ namespace Sally7.Tests
         [InlineData(0)]
         [InlineData(1)]
         [InlineData(-1)]
+        [InlineData((long) short.MinValue)]
+        [InlineData((long) short.MaxValue)]
+        [InlineData((long) int.MinValue)]
+        [InlineData((long) int.MaxValue)]
+        [InlineData(long.MinValue)]
+        [InlineData(long.MaxValue)]
+        public void ConvertToLong(long value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
+
+            var converter = ConverterFactory.GetFromPlcConverter<long>();
+            long result = default;
+            converter(ref result, bytes, sizeof(long));
+
+            Assert.Equal(value, result);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(-1)]
         [InlineData((int) short.MinValue)]
         [InlineData((int) short.MaxValue)]
         [InlineData(int.MaxValue)]
@@ -22,6 +44,24 @@ namespace Sally7.Tests
             var converter = ConverterFactory.GetFromPlcConverter<int>();
             int result = default;
             converter(ref result, bytes, sizeof(int));
+
+            Assert.Equal(value, result);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(-1)]
+        [InlineData(short.MinValue)]
+        [InlineData(short.MaxValue)]
+        public void ConvertToShort(short value)
+        {
+            var bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
+
+            var converter = ConverterFactory.GetFromPlcConverter<short>();
+            short result = default;
+            converter(ref result, bytes, sizeof(short));
 
             Assert.Equal(value, result);
         }
