@@ -10,9 +10,7 @@ namespace Sally7.ValueConversion
     {
         public static Delegate GetConverter<TValue>()
         {
-            var type = typeof(TValue);
-
-            if (type.IsPrimitive || type.IsEnum)
+            if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
             {
                 return Unsafe.SizeOf<TValue>() switch
                 {
@@ -24,12 +22,12 @@ namespace Sally7.ValueConversion
                 };
             }
 
-            if (type == typeof(bool[]))
+            if (typeof(TValue) == typeof(bool[]))
                 return new ConvertToS7<bool[]>(ConvertFromBoolArray);
 
-            if (type.IsArray)
+            if (typeof(TValue).IsArray)
             {
-                var elementType = type.GetElementType() ??
+                var elementType = typeof(TValue).GetElementType() ??
                     throw new Exception($"Type {typeof(TValue)} doesn't have an ElementType.");
 
                 if (elementType.IsPrimitive || elementType.IsEnum)
@@ -45,7 +43,7 @@ namespace Sally7.ValueConversion
                 }
             }
 
-            if (type == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
+            if (typeof(TValue) == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
 
             throw new NotImplementedException();
         }
