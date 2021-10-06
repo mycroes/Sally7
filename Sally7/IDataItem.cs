@@ -12,6 +12,7 @@ namespace Sally7
         BigEndianShort ReadCount { get; }
 
         TransportSize TransportSize { get; }
+        int TransmissionLength { get; }
         VariableType VariableType { get; }
 
         int WriteValue(Span<byte> output);

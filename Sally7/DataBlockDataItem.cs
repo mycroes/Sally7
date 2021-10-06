@@ -73,6 +73,19 @@ namespace Sally7
         Address IDataItem.Address => address;
         Area IDataItem.Area => Area.DataBlock;
         TransportSize IDataItem.TransportSize => transportSize;
+
+        int IDataItem.TransmissionLength
+        {
+            get
+            {
+                if (typeof(TValue) == typeof(string)) return length + 2;
+
+                if (typeof(TValue) == typeof(bool)) return (length + 7) / 8;
+
+                return length * ConversionHelper.SizeOf(typeof(TValue));
+            }
+        }
+
         VariableType IDataItem.VariableType => variableType;
 
         int IDataItem.WriteValue(Span<byte> output) => toS7Converter.Invoke(value, Length, output);
