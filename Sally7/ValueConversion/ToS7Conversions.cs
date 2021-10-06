@@ -131,8 +131,8 @@ namespace Sally7.ValueConversion
         {
             if (value == null)
             {
-                output[0] = (byte) length;
                 output[1] = 0;
+                output[0] = (byte) length;
 
                 return 2;
             }
@@ -147,8 +147,8 @@ namespace Sally7.ValueConversion
             written = Math.Min(written, length);
             span = span.Slice(0, written);
 
-            output[0] = (byte) length;
             output[1] = (byte) span.Length;
+            output[0] = (byte) length;
             span.CopyTo(output.Slice(2));
 
             return span.Length + 2;
@@ -157,8 +157,8 @@ namespace Sally7.ValueConversion
             var span = bytes.AsSpan();
             if (span.Length > length) span = span.Slice(0, length);
 
-            output[0] = (byte) length;
             output[1] = (byte) span.Length;
+            output[0] = (byte) length;
             span.CopyTo(output.Slice(2));
 
             return span.Length + 2;
