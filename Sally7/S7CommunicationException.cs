@@ -106,7 +106,7 @@ namespace Sally7
                 $"see the {nameof(InnerException)} property for details.", inner, data);
         }
 
-        internal static void ThrowInvalidJobID(byte replyJobId, ReadOnlyMemory<byte> message)
+        internal static void ThrowInvalidJobID(int replyJobId, ReadOnlyMemory<byte> message)
             => throw new S7CommunicationException($"Received invalid job ID '{replyJobId}' in response from PLC.", message.ToArray());
     }
 }

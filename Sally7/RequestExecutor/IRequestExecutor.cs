@@ -6,7 +6,7 @@ namespace Sally7.RequestExecutor
     /// <summary>
     /// Defines method to execute requests on a <see cref="S7Connection"/>.
     /// </summary>
-    public interface IRequestExecutor
+    public interface IRequestExecutor : IDisposable
     {
         /// <summary>
         /// The connection on which requests are executed by this executor.

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Buffers;
-using System.Linq;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,7 +14,7 @@ namespace Sally7.RequestExecutor
     /// <summary>
     /// Provides a concurrent request executor that makes use of job ids in the S7 protocol to process responses.
     /// </summary>
-    public class ConcurrentRequestExecutor : IRequestExecutor
+    internal sealed class ConcurrentRequestExecutor : IRequestExecutor
     {
         private const int JobIdIndex = 12;
 
@@ -24,10 +24,9 @@ namespace Sally7.RequestExecutor
         private readonly MemoryPool<byte> memoryPool;
         private readonly SocketTpktReader reader;
         private readonly SocketAwaitable sendAwaitable;
-        private readonly Request[] requests;
-        private readonly Channel<byte> jobChannel;
-        private readonly Channel<byte> sendChannel;
-        private readonly Channel<byte> receiveChannel;
+        private readonly JobPool jobPool;
+        private readonly Signal sendSignal;
+        private readonly Signal receiveSignal;
 
         /// <inheritdoc/>
         public S7Connection Connection { get; }
@@ -53,19 +52,12 @@ namespace Sally7.RequestExecutor
             maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
             this.memoryPool = memoryPool;
 
-            var maxNumberOfConcurrentRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
+            jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
+            sendSignal = new Signal();
+            receiveSignal = new Signal();
 
-            jobChannel = Channel.CreateBounded<byte>(maxNumberOfConcurrentRequests);
-            sendChannel = Channel.CreateBounded<byte>(1);
-            receiveChannel = Channel.CreateBounded<byte>(1);
-
-            if (!Enumerable.Range(1, maxNumberOfConcurrentRequests).All(i => jobChannel.Writer.TryWrite((byte)i)))
-                Sally7Exception.ThrowFailedToInitJobChannel();
-
-            if (!sendChannel.Writer.TryWrite(1)) Sally7Exception.ThrowFailedToInitSendingChannel();
-            if (!receiveChannel.Writer.TryWrite(1)) Sally7Exception.ThrowFailedToInitReceivingChannel();
-
-            requests = Enumerable.Range(0, maxNumberOfConcurrentRequests).Select(_ => new Request()).ToArray();
+            if (!sendSignal.TryInit()) Sally7Exception.ThrowFailedToInitSendingSignal();
+            if (!receiveSignal.TryInit()) Sally7Exception.ThrowFailedToInitReceivingSignal();
 
             reader = new SocketTpktReader(socket);
             sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
@@ -80,27 +72,32 @@ namespace Sally7.RequestExecutor
         {
         }
 
+        public void Dispose()
+        {
+            jobPool.Dispose();
+            sendSignal.Dispose();
+            receiveSignal.Dispose();
+        }
+
         /// <inheritdoc/>
         public async ValueTask<Memory<byte>> PerformRequest(ReadOnlyMemory<byte> request, Memory<byte> response)
         {
-            var id = await jobChannel.Reader.ReadAsync().ConfigureAwait(false);
+            int jobId = await jobPool.RentJobIdAsync().ConfigureAwait(false);
             try
             {
-                var req = requests[id - 1];
-                req.Reset();
-                req.SetBuffer(response);
+                Request req = jobPool.GetRequestAndSetBuffer(jobId, response);
 
                 using (var mo = memoryPool.Rent(request.Length))
                 {
                     request.CopyTo(mo.Memory);
-                    mo.Memory.Span[JobIdIndex] = id;
+                    mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
                     if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
                     {
                         Sally7Exception.ThrowMemoryWasNotArrayBased();
                     }
 
-                    await sendChannel.Reader.ReadAsync().ConfigureAwait(false);
+                    _ = await sendSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
                         sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
@@ -108,9 +105,9 @@ namespace Sally7.RequestExecutor
                     }
                     finally
                     {
-                        if (!sendChannel.Writer.TryWrite(id))
+                        if (!sendSignal.TryRelease())
                         {
-                            Sally7Exception.ThrowFailedToSignalSendingChannel();
+                            Sally7Exception.ThrowFailedToSignalSendDone();
                         }
                     }
                 }
@@ -122,28 +119,28 @@ namespace Sally7.RequestExecutor
 
                 using (var mo = memoryPool.Rent(bufferSize))
                 {
-                    await receiveChannel.Reader.ReadAsync().ConfigureAwait(false);
+                    _ = await receiveSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
                         length = await reader.ReadAsync(mo.Memory).ConfigureAwait(false);
                     }
                     finally
                     {
-                        if (!receiveChannel.Writer.TryWrite(0))
+                        if (!receiveSignal.TryRelease())
                         {
-                            Sally7Exception.ThrowFailedToSignalReceivingChannel();
+                            Sally7Exception.ThrowFailedToSignalReceiveDone();
                         }
                     }
 
                     var message = mo.Memory.Slice(0, length);
-                    var replyJobId = mo.Memory.Span[JobIdIndex];
+                    int replyJobId = mo.Memory.Span[JobIdIndex];
 
-                    if (replyJobId <= 0 || replyJobId > maxRequests)
+                    if ((uint)(replyJobId - 1) >= (uint)maxRequests)
                     {
                         S7CommunicationException.ThrowInvalidJobID(replyJobId, message);
                     }
 
-                    rec = requests[replyJobId - 1];
+                    rec = jobPool.GetRequest(replyJobId);
 
                     mo.Memory.Slice(0, length).CopyTo(rec.Buffer);
                 }
@@ -155,11 +152,70 @@ namespace Sally7.RequestExecutor
             }
             finally
             {
-                if (!jobChannel.Writer.TryWrite(id))
+                jobPool.ReturnJobId(jobId);
+            }
+        }
+
+        private class JobPool : IDisposable
+        {
+            private readonly Channel<int> jobIdPool;
+            private readonly Request[] requests;
+
+            public JobPool(int maxNumberOfConcurrentRequests)
+            {
+                jobIdPool = Channel.CreateBounded<int>(maxNumberOfConcurrentRequests);
+                requests = new Request[maxNumberOfConcurrentRequests];
+
+                for (int i = 0; i < maxNumberOfConcurrentRequests; ++i)
                 {
-                    Sally7Exception.ThrowFailedToReturnJobIDToPool(id);
+                    if (!jobIdPool.Writer.TryWrite(i + 1))
+                    {
+                        Sally7Exception.ThrowFailedToInitJobPool();
+                    }
+
+                    requests[i] = new Request();
                 }
             }
+
+            public void Dispose() => jobIdPool.Writer.Complete();
+
+            public ValueTask<int> RentJobIdAsync() => jobIdPool.Reader.ReadAsync();
+
+            public void ReturnJobId(int jobId)
+            {
+                if (!jobIdPool.Writer.TryWrite(jobId))
+                {
+                    Sally7Exception.ThrowFailedToReturnJobIDToPool(jobId);
+                }
+            }
+
+            public Request GetRequest(int jobId) => requests[jobId - 1];
+
+            public Request GetRequestAndSetBuffer(int jobId, Memory<byte> buffer)
+            {
+                Request req = GetRequest(jobId);
+                req.Reset();
+                req.SetBuffer(buffer);
+
+                return req;
+            }
+        }
+
+        [DebuggerNonUserCode]
+        [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
+        private class Signal : IDisposable
+        {
+            private readonly Channel<byte> channel = Channel.CreateBounded<byte>(1);
+
+            public void Dispose() => channel.Writer.Complete();
+
+            public bool TryInit() => channel.Writer.TryWrite(0);
+
+            public ValueTask<byte> WaitAsync() => channel.Reader.ReadAsync();
+
+            public bool TryRelease() => channel.Writer.TryWrite(0);
+
+            private bool NeedToWait => channel.Reader.Count == 0;
         }
 
         private class Request : INotifyCompletion

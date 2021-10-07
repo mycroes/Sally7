@@ -92,8 +92,8 @@ namespace Sally7
 
         public void Dispose()
         {
-            (requestExecutor as IDisposable)?.Dispose();
-            ((IDisposable) TcpClient).Dispose();
+            TcpClient.Dispose();
+            requestExecutor?.Dispose();
         }
 
         public async Task OpenAsync()

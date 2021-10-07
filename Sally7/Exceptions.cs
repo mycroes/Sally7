@@ -24,23 +24,23 @@ namespace Sally7
         internal static void ThrowSocketException(SocketError socketError)
             => throw new SocketException((int)socketError);
 
-        internal static void ThrowFailedToInitJobChannel()
-            => throw new Sally7Exception("Failed to initialize the job channel.");
+        internal static void ThrowFailedToInitJobPool()
+            => throw new Sally7Exception("Failed to initialize the job pool.");
 
-        internal static void ThrowFailedToInitReceivingChannel()
-            => throw new Sally7Exception("Failed to initialize the receiving channel.");
+        internal static void ThrowFailedToInitReceivingSignal()
+            => throw new Sally7Exception("Failed to initialize the receiving signal.");
 
-        internal static void ThrowFailedToInitSendingChannel()
-            => throw new Sally7Exception("Failed to initialize the sending channel.");
+        internal static void ThrowFailedToInitSendingSignal()
+            => throw new Sally7Exception("Failed to initialize the sending signal.");
 
-        internal static void ThrowFailedToReturnJobIDToPool(byte jobId)
+        internal static void ThrowFailedToReturnJobIDToPool(int jobId)
            => throw new Sally7Exception($"Couldn't return job ID {jobId} to the pool.");
 
-        internal static void ThrowFailedToSignalReceivingChannel()
-           => throw new Sally7Exception("Couldn't signal receive channel.");
+        internal static void ThrowFailedToSignalReceiveDone()
+           => throw new Sally7Exception("Couldn't signal receive done.");
 
-        internal static void ThrowFailedToSignalSendingChannel()
-            => throw new Sally7Exception("Couldn't signal send channel.");
+        internal static void ThrowFailedToSignalSendDone()
+            => throw new Sally7Exception("Couldn't signal send done.");
 
         internal static void ThrowMemoryWasNotArrayBased()
             => throw new Sally7Exception("Memory was not array based");
