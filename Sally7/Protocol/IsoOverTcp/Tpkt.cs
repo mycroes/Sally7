@@ -1,6 +1,6 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.IsoOverTcp
 {
@@ -18,20 +18,17 @@ namespace Sally7.Protocol.IsoOverTcp
         {
             if (Version != IsoVersion)
             {
-                Throw();
-                static void Throw() => throw new Exception("Spec violation: TPKT header has incorrect version.");
+                ThrowHelper.ThrowSpecViolationTPKTHeaderIncorrectVersion();
             }
 
             if (Reserved != 0)
             {
-                Throw();
-                static void Throw() => throw new Exception("Spec violoation: TPKT reserved is not 0.");
+                ThrowHelper.ThrowSpecViolationTPKTReseveredNot0();
             }
 
             if (Length.High == 0 && Length.Low < 7)
             {
-                Throw();
-                static void Throw() => throw new Exception("Spec violation: TPKT length is smaller than 7.");
+                ThrowHelper.ThrowSpecViolationTPKTLengthSmallerThan7();
             }
         }
 

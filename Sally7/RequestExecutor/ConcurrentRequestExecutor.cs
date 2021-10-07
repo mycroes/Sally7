@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Sally7.Infrastructure;
 using Sally7.Internal;
 
 namespace Sally7.RequestExecutor
@@ -44,8 +45,7 @@ namespace Sally7.RequestExecutor
         {
             if (connection.Parameters == null)
             {
-                throw new ArgumentException(
-                    "The connection must be initialized and it's Parameters property must have a value.");
+                ThrowHelper.ThrowConnectionParametersNotSet();
             }
 
             Connection = connection;
@@ -60,11 +60,11 @@ namespace Sally7.RequestExecutor
             sendChannel = Channel.CreateBounded<byte>(1);
             receiveChannel = Channel.CreateBounded<byte>(1);
 
-            if (!Enumerable.Range(1, maxNumberOfConcurrentRequests).All(i => jobChannel.Writer.TryWrite((byte) i)))
-                throw new Exception($"Failed to initialize the job channel.");
+            if (!Enumerable.Range(1, maxNumberOfConcurrentRequests).All(i => jobChannel.Writer.TryWrite((byte)i)))
+                ThrowHelper.ThrowFailedToInitJobChannel();
 
-            if (!sendChannel.Writer.TryWrite(1)) throw new Exception("Failed to initialize the sending channel.");
-            if (!receiveChannel.Writer.TryWrite(1)) throw new Exception("Failed to initialize the receiving channel.");
+            if (!sendChannel.Writer.TryWrite(1)) ThrowHelper.ThrowFailedToInitSendingChannel();
+            if (!receiveChannel.Writer.TryWrite(1)) ThrowHelper.ThrowFailedToInitReceivingChannel();
 
             requests = Enumerable.Range(0, maxNumberOfConcurrentRequests).Select(_ => new Request()).ToArray();
 
@@ -98,7 +98,7 @@ namespace Sally7.RequestExecutor
 
                     if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
                     {
-                        throw new Exception("Failed to get array from Memory");
+                        ThrowHelper.ThrowMemoryWasNotArrayBased();
                     }
 
                     await sendChannel.Reader.ReadAsync().ConfigureAwait(false);
@@ -111,7 +111,7 @@ namespace Sally7.RequestExecutor
                     {
                         if (!sendChannel.Writer.TryWrite(id))
                         {
-                            throw new Exception("Couldn't signal send channel.");
+                            ThrowHelper.ThrowFailedToSignalSendingChannel();
                         }
                     }
                 }
@@ -132,7 +132,7 @@ namespace Sally7.RequestExecutor
                     {
                         if (!receiveChannel.Writer.TryWrite(0))
                         {
-                            throw new Exception("Couldn't signal receive channel.");
+                            ThrowHelper.ThrowFailedToSignalReceivingChannel();
                         }
                     }
 
@@ -141,8 +141,7 @@ namespace Sally7.RequestExecutor
 
                     if (replyJobId <= 0 || replyJobId > maxRequests)
                     {
-                        throw new S7CommunicationException($"Received invalid job ID '{replyJobId}' in response from PLC.",
-                            message.ToArray());
+                        ThrowHelper.ThrowS7CommunicationInvalidJobID(replyJobId, message);
                     }
 
                     rec = requests[replyJobId - 1];
@@ -159,7 +158,7 @@ namespace Sally7.RequestExecutor
             {
                 if (!jobChannel.Writer.TryWrite(id))
                 {
-                    throw new Exception($"Couldn't return job ID {id} to the pool.");
+                    ThrowHelper.ThrowFailedToReturnJobIDToPool(id);
                 }
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -26,7 +25,7 @@ namespace Sally7.Internal
         public async ValueTask<int> ReadAsync(Memory<byte> message)
         {
             if (!MemoryMarshal.TryGetArray<byte>(message, out var segment))
-                throw new Exception($"Memory was not array based");
+                ThrowHelper.ThrowMemoryWasNotArrayBased();
 
             args.SetBuffer(segment.Array, segment.Offset, TpktSize);
 
@@ -41,7 +40,7 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
-                    throw new Exception("Connection was closed while reading.");
+                    ThrowHelper.ThrowConnectionWasClosedWhileReading();
 
                 count += args.BytesTransferred;
 
@@ -55,7 +54,7 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
-                    throw new Exception("Connection was closed while reading.");
+                    ThrowHelper.ThrowConnectionWasClosedWhileReading();
 
                 count += args.BytesTransferred;
             }
@@ -74,18 +73,8 @@ namespace Sally7.Internal
             }
             catch (Exception e)
             {
-                Throw(span, e);
-                return -1;  // just to make the compiler happy
-
-                static void Throw(ReadOnlySpan<byte> span, Exception e)
-                {
-                    var data = span.ToArray();
-
-                    throw new S7CommunicationException(
-                        $"Failed to parse TPKT from response ({string.Join(", ", data.Select(b => b.ToString("X2")))}), " +
-                        $"see the {nameof(S7CommunicationException.InnerException)} property for details.", e,
-                        data);
-                }
+                ThrowHelper.ThrowS7Communication(span, e);
+                return -1;  // to make the compiler happy
             }
         }
     }

@@ -176,8 +176,7 @@ namespace Sally7
             len = await stream.ReadAsync(buffer, 4, msgLen).ConfigureAwait(false);
             if (len != msgLen)
             {
-                Throw(msgLen, len);
-                static void Throw(int msgLen, int len) => throw new Exception($"Error while reading TPKT data, expected {msgLen} bytes but received {len}.");
+                ThrowHelper.ThrowTPKTReadingData(msgLen, len);
             }
 
             return tpkt.Length;

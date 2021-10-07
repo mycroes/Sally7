@@ -1,6 +1,6 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.S7.Messages
 {
@@ -15,14 +15,12 @@ namespace Sally7.Protocol.S7.Messages
         {
             if (FunctionCode != FunctionCode.Read)
             {
-                Throw(FunctionCode);
-                static void Throw(FunctionCode actual) => throw new Exception($"Expected FunctionCode {FunctionCode.Read}, received {actual}.");
+                ThrowHelper.ThrowAssertFailFunctionCode(FunctionCode.Read, FunctionCode);
             }
 
             if (ItemCount != count)
             {
-                Throw(ItemCount, count);
-                static void Throw(byte itemCount, byte count) => throw new Exception($"Expected ItemCount {count}, received {itemCount}.");
+                ThrowHelper.ThrowAssertFailItemCount(count, ItemCount);
             }
         }
     }

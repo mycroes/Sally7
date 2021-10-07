@@ -1,6 +1,6 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.Cotp
 {
@@ -23,20 +23,17 @@ namespace Sally7.Protocol.Cotp
         {
             if (Length != 2)
             {
-                Throw(Length);
-                static void Throw(byte length) => throw new Exception($"Expected length of 2, received {length}.");
+                ThrowHelper.ThrowAssertFailLengthReceived(Length);
             }
 
             if (DataIdentifier != 0b1111_0000)
             {
-                Throw(DataIdentifier);
-                static void Throw(byte dataIdentifier) => throw new Exception($"Invalid DT identifier, expected {0b1111_0000}, received {dataIdentifier}.");
+                ThrowHelper.ThrowAssertFailDTIdentifier(DataIdentifier);
             }
 
             if ((PduNumberAndEot & 0b1_000_0000) == 0)
             {
-                Throw();
-                static void Throw() => throw new Exception("Expected a single PDU return only.");
+                ThrowHelper.ThrowAssertFailSinglePDU();
             }
         }
     }

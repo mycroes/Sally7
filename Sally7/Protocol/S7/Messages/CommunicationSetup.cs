@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
+using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.S7.Messages
 {
@@ -27,14 +27,12 @@ namespace Sally7.Protocol.S7.Messages
         {
             if (FunctionCode != functionCode)
             {
-                Throw(FunctionCode, functionCode);
-                static void Throw(FunctionCode expected, FunctionCode actual) => throw new Exception($"Expected function code {expected}, received {actual}.");
+                ThrowHelper.ThrowAssertFailFunctionCode(FunctionCode, functionCode);
             }
 
             if (Reserved != 0)
             {
-                Throw(Reserved);
-                static void Throw(byte reserved) => throw new Exception($"Expected reserved 0, received {reserved}");
+                ThrowHelper.ThrowAssertFailReservedNot0(Reserved);
             }
         }
     }
