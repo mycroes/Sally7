@@ -122,5 +122,42 @@ namespace Sally7.Tests
             Nine,
             Ten
         }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(7)]
+        [InlineData(8)]
+        [InlineData(9)]
+        [InlineData(100)]
+        [InlineData(127)]
+        [InlineData(128)]
+        [InlineData(129)]
+        public void ConvertToBoolArray_Roundtrips(int boolArraySize)
+        {
+            var bools = new bool[boolArraySize];
+            var bytes = new byte[boolArraySize];
+            var random = new Random();
+
+            for (int i = 0; i < bools.Length; ++i)
+            {
+                bools[i] = random.Next() % 2 == 0;
+            }
+
+            var toS7Converter = ConverterFactory.GetToPlcConverter<bool[]>();
+            var fromS7Converter = ConverterFactory.GetFromPlcConverter<bool[]>();
+
+            int length = toS7Converter(bools, bools.Length, bytes);
+
+            bool[]? actual = null;
+            fromS7Converter(ref actual, bytes, boolArraySize);
+
+            Assert.Equal(boolArraySize, actual!.Length);
+
+            for (int i = 0; i < boolArraySize; ++i)
+            {
+                Assert.Equal(bools[i], actual[i]);
+            }
+        }
     }
 }

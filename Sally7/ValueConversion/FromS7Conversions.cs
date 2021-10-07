@@ -93,7 +93,25 @@ namespace Sally7.ValueConversion
         }
 
         private static void ConvertToBoolArray(ref bool[]? value, ReadOnlySpan<byte> input, int length)
-            => value = new BitArray(input.Slice(0, (length + 7) / 8).ToArray()).Cast<bool>().Take(length).ToArray();
+        {
+            value ??= new bool[length];
+            input = input.Slice(0, (length + 7) >> 3);      // (length + 7) / 8
+
+            int valueIdx = 0;
+
+            foreach (byte b in input)
+            {
+                for (int i = 0; i < 8; ++i)
+                {
+                    if ((uint)valueIdx >= (uint)value.Length)
+                    {
+                        return;
+                    }
+
+                    value[valueIdx++] = (b & (1 << i)) != 0;
+                }
+            }
+        }
 
         private static void ConvertToString(ref string? value, ReadOnlySpan<byte> input, int length)
         {

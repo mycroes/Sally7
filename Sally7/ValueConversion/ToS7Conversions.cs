@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -117,14 +118,39 @@ namespace Sally7.ValueConversion
 
         private static int ConvertFromBoolArray(bool[]? value, int length, Span<byte> output)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+            if (value is null)
+            {
+                Throw();
+                [DoesNotReturn]
+                static void Throw() => throw new ArgumentNullException(nameof(value), "Value can't be null");
+            }
 
-            var bitArray = new BitArray(value);
-            var byteArray = new byte[(length + 7) / 8];
-            bitArray.CopyTo(byteArray, 0);
-            byteArray.CopyTo(output);
+            length = (length + 7) >> 3;     // (length + 7) / 8
 
-            return byteArray.Length;
+            int outputIdx = 0;
+            int bitIdx = 0;
+
+            foreach (bool b in value)
+            {
+                if (b)
+                {
+                    output[outputIdx] |= (byte)(1 << bitIdx);
+                }
+                else
+                {
+                    output[outputIdx] &= (byte)~(1 << bitIdx);
+                }
+
+                bitIdx++;
+
+                if ((bitIdx & 7) == 0)
+                {
+                    outputIdx++;
+                    bitIdx = 0;
+                }
+            }
+
+            return length;
         }
 
         private static int ConvertFromString(string? value, int length, Span<byte> output)
