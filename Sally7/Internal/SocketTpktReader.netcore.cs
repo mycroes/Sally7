@@ -11,12 +11,12 @@ namespace Sally7.Internal
         public async ValueTask<int> ReadAsync(Memory<byte> message)
         {
             int count = 0;
-            Memory<byte> buffer = message.Slice(0, TpktSize);
+            Memory<byte> buffer = message;  // try to read as much a possible
             do
             {
                 if (count > 0)
                 {
-                    buffer = message.Slice(count, TpktSize - count);
+                    buffer = message.Slice(count);
                 }
 
                 int read = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
