@@ -42,6 +42,9 @@ namespace Sally7
 
         internal static void ThrowMemoryWasNotArrayBased()
             => throw new Sally7Exception("Memory was not array based");
+
+        internal static void ThrowMemoryRentedTooLarge(int bufferSize)
+            => throw new ArgumentOutOfRangeException($"The requested size for the Memory is too large, max. allowed is {bufferSize}.");
     }
 
     [Serializable]
