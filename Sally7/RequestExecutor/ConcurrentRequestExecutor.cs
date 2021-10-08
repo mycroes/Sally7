@@ -39,7 +39,7 @@ namespace Sally7.RequestExecutor
         /// <param name="memoryPool">
         /// The <see cref="MemoryPool{T}" /> that is used for request and response memory allocations.
         /// </param>
-        public ConcurrentRequestExecutor(S7Connection connection, MemoryPool<byte> memoryPool)
+        public ConcurrentRequestExecutor(S7Connection connection, MemoryPool<byte>? memoryPool = default)
         {
             if (connection.Parameters == null)
             {
@@ -50,7 +50,7 @@ namespace Sally7.RequestExecutor
             socket = connection.TcpClient.Client;
             bufferSize = connection.Parameters.GetRequiredBufferSize();
             maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
-            this.memoryPool = memoryPool;
+            this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
 
             jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
             sendSignal = new Signal();
@@ -61,15 +61,6 @@ namespace Sally7.RequestExecutor
 
             reader = new SocketTpktReader(socket);
             sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ConcurrentRequestExecutor"/> class with the specified
-        /// connection.
-        /// </summary>
-        /// <param name="connection">The <see cref="S7Connection"/> that is used for this executor.</param>
-        public ConcurrentRequestExecutor(S7Connection connection) : this(connection, MemoryPool<byte>.Shared)
-        {
         }
 
         public void Dispose()
