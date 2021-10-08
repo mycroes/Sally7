@@ -21,7 +21,7 @@ namespace Sally7.RequestExecutor
         private readonly Socket socket;
         private readonly int bufferSize;
         private readonly int maxRequests;
-        private readonly MemoryPool<byte> memoryPool;
+        //private readonly MemoryPool<byte> memoryPool;
         private readonly SocketTpktReader reader;
         private readonly SocketAwaitable sendAwaitable;
         private readonly JobPool jobPool;
@@ -50,7 +50,7 @@ namespace Sally7.RequestExecutor
             socket = connection.TcpClient.Client;
             bufferSize = connection.Parameters.GetRequiredBufferSize();
             maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
-            this.memoryPool = memoryPool;
+            //this.memoryPool = memoryPool;
 
             jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
             sendSignal = new Signal();
@@ -87,12 +87,17 @@ namespace Sally7.RequestExecutor
             {
                 Request req = jobPool.GetRequestAndSetBuffer(jobId, response);
 
-                using (var mo = memoryPool.Rent(request.Length))
+                //using (var mo = memoryPool.Rent(request.Length))
+                byte[] requestBuffer = ArrayPool<byte>.Shared.Rent(request.Length);
+                Memory<byte> requestMemory = requestBuffer;
                 {
-                    request.CopyTo(mo.Memory);
-                    mo.Memory.Span[JobIdIndex] = (byte) jobId;
+                    //request.CopyTo(mo.Memory);
+                    //mo.Memory.Span[JobIdIndex] = (byte) jobId;
+                    request.CopyTo(requestMemory);
+                    requestMemory.Span[JobIdIndex] = (byte)jobId;
 
-                    if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
+                    //if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
+                    if (!MemoryMarshal.TryGetArray(requestMemory.Slice(0, request.Length), out ArraySegment<byte> segment))
                     {
                         Sally7Exception.ThrowMemoryWasNotArrayBased();
                     }
@@ -111,18 +116,22 @@ namespace Sally7.RequestExecutor
                         }
                     }
                 }
+                ArrayPool<byte>.Shared.Return(requestBuffer);
 
                 // Always wait for a response. The number of received responses should always equal the
                 // number of requests, so a single response must be received.
                 Request rec;
                 int length;
 
-                using (var mo = memoryPool.Rent(bufferSize))
+                //using (var mo = memoryPool.Rent(bufferSize))
+                byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+                Memory<byte> memory = buffer;
                 {
                     _ = await receiveSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
-                        length = await reader.ReadAsync(mo.Memory).ConfigureAwait(false);
+                        //length = await reader.ReadAsync(mo.Memory).ConfigureAwait(false);
+                        length = await reader.ReadAsync(memory).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -132,8 +141,10 @@ namespace Sally7.RequestExecutor
                         }
                     }
 
-                    var message = mo.Memory.Slice(0, length);
-                    int replyJobId = mo.Memory.Span[JobIdIndex];
+                    //var message = mo.Memory.Slice(0, length);
+                    //int replyJobId = mo.Memory.Span[JobIdIndex];
+                    var message = memory.Slice(0, length);
+                    int replyJobId = memory.Span[JobIdIndex];
 
                     if ((uint)(replyJobId - 1) >= (uint)maxRequests)
                     {
@@ -142,8 +153,10 @@ namespace Sally7.RequestExecutor
 
                     rec = jobPool.GetRequest(replyJobId);
 
-                    mo.Memory.Slice(0, length).CopyTo(rec.Buffer);
+                    //mo.Memory.Slice(0, length).CopyTo(rec.Buffer);
+                    memory.Slice(0, length).CopyTo(rec.Buffer);
                 }
+                ArrayPool<byte>.Shared.Return(buffer);
 
                 rec.Complete(length);
 

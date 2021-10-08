@@ -19,7 +19,7 @@ namespace Sally7
         private readonly Tsap sourceTsap;
         private readonly Tsap destinationTsap;
         private readonly RequestExecutorFactory executorFactory;
-        private readonly MemoryPool<byte> memoryPool;
+        //private readonly MemoryPool<byte> memoryPool;
 
         private IRequestExecutor? requestExecutor;
         private int bufferSize;
@@ -49,7 +49,7 @@ namespace Sally7
             this.host = host;
             this.sourceTsap = sourceTsap;
             this.destinationTsap = destinationTsap;
-            this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
+            //this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
             this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
 
@@ -123,30 +123,38 @@ namespace Sally7
         {
             var executor = GetExecutorOrThrow();
 
-            using var mo = memoryPool.Rent(bufferSize);
-            var mem = mo.Memory;
+            //using var mo = memoryPool.Rent(bufferSize);
+            //var mem = mo.Memory;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> mem = buffer;
             var length = S7ConnectionHelpers.BuildReadRequest(mem.Span, dataItems);
 
             // The response will only be written after the request has been sent. At that point we no longer
             // care about the request contents, so we use a single buffer only.
-            var response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
+            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
 
             S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
+
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         public async Task WriteAsync(params IDataItem[] dataItems)
         {
             var executor = GetExecutorOrThrow();
 
-            using var mo = memoryPool.Rent(bufferSize);
-            var mem = mo.Memory;
+            //using var mo = memoryPool.Rent(bufferSize);
+            //var mem = mo.Memory;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+            Memory<byte> mem = buffer;
             var length = S7ConnectionHelpers.BuildWriteRequest(mem.Span, dataItems);
 
             // The response will only be written after the request has been sent. At that point we no longer
             // care about the request contents, so we use a single buffer only.
-            var response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
+            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
 
             S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems);
+
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         private IRequestExecutor GetExecutorOrThrow()
