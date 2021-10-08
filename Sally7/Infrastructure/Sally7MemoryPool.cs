@@ -76,7 +76,13 @@ namespace Sally7.Infrastructure
 
             public Memory<byte> Memory { get; }
 
-            public void Dispose() => _pool.Return(this);
+            public void Dispose()
+            {
+#if DEBUG
+                Memory.Span.Clear();
+#endif
+                _pool.Return(this);
+            }
         }
     }
 }

@@ -37,7 +37,9 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
+                {
                     TpktException.ThrowConnectionWasClosedWhileReading();
+                }
 
                 count += args.BytesTransferred;
 
@@ -51,7 +53,9 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
+                {
                     TpktException.ThrowConnectionWasClosedWhileReading();
+                }
 
                 count += args.BytesTransferred;
             }

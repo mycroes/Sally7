@@ -25,7 +25,12 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Remove="Internal\SocketAwaitable.cs" />
+    <Compile Remove="Internal\SocketExtensions.cs" />
     <Compile Remove="Internal\SocketTpktReader.desktop.cs" />
+
+    <None Include="Internal\SocketAwaitable.cs" />
+    <None Include="Internal\SocketExtensions.cs" />
     <None Include="Internal\SocketTpktReader.desktop.cs" />
   </ItemGroup>
     
@@ -33,7 +38,7 @@
     <PackageReference Include="System.Memory" Version="4.5.4" />
       
     <Compile Remove="Internal\SocketTpktReader.netcore.cs" />
-    <None Include="Internal\SocketTpktReader.netcore.cs" />
+    <None   Include="Internal\SocketTpktReader.netcore.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">

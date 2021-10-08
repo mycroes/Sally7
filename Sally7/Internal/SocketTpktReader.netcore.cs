@@ -1,59 +1,47 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Sally7.Internal
 {
     internal partial class SocketTpktReader
     {
-        private readonly SocketAwaitable awaitable;
-        private readonly SocketAsyncEventArgs args;
-
-        public SocketTpktReader(Socket socket)
-        {
-            this.socket = socket;
-            args = new SocketAsyncEventArgs();
-            awaitable = new SocketAwaitable(args);
-        }
+        public SocketTpktReader(Socket socket) => this.socket = socket;
 
         public async ValueTask<int> ReadAsync(Memory<byte> message)
         {
-            if (!MemoryMarshal.TryGetArray<byte>(message, out var segment))
-            {
-                Sally7Exception.ThrowMemoryWasNotArrayBased();
-            }
-
-            args.SetBuffer(segment.Array, segment.Offset, TpktSize);
-
             int count = 0;
+            Memory<byte> buffer = message.Slice(0, TpktSize);
             do
             {
                 if (count > 0)
                 {
-                    args.SetBuffer(segment.Offset + count, TpktSize - count);
+                    buffer = message.Slice(count, TpktSize - count);
                 }
 
-                await socket.ReceiveAsync(awaitable);
+                int read = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
 
-                if (args.BytesTransferred <= 0)
+                if (read <= 0)
+                {
                     TpktException.ThrowConnectionWasClosedWhileReading();
+                }
 
-                count += args.BytesTransferred;
-
+                count += read;
             } while (count < TpktSize);
 
             int receivedLength = GetTpktLength(message.Span);
 
             while (count < receivedLength)
             {
-                args.SetBuffer(segment.Offset + count, receivedLength - count);
-                await socket.ReceiveAsync(awaitable);
+                buffer = message.Slice(count, receivedLength - count);
+                int read = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
 
-                if (args.BytesTransferred <= 0)
+                if (read <= 0)
+                {
                     TpktException.ThrowConnectionWasClosedWhileReading();
+                }
 
-                count += args.BytesTransferred;
+                count += read;
             }
 
             return receivedLength;

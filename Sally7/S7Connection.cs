@@ -94,6 +94,11 @@ namespace Sally7
         {
             TcpClient.Dispose();
             requestExecutor?.Dispose();
+
+            if (memoryPool is Sally7MemoryPool mp)
+            {
+                mp.Dispose();
+            }
         }
 
         public async Task OpenAsync()
