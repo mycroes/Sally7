@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Sally7.Infrastructure
 {
+    [DebuggerNonUserCode]
     internal sealed class Sally7MemoryPool : MemoryPool<byte>
     {
         private readonly int _bufferSize;
@@ -54,6 +55,7 @@ namespace Sally7.Infrastructure
             _memories.Enqueue(memoryHolder);
         }
 
+        [DebuggerNonUserCode]
         private sealed class MemoryHolder : IMemoryOwner<byte>
         {
             private readonly Sally7MemoryPool _pool;

@@ -78,21 +78,26 @@ namespace Sally7.RequestExecutor
             {
                 Request req = jobPool.GetRequestAndSetBuffer(jobId, response);
 
-                using (var mo = memoryPool.Rent(request.Length))
+                using (IMemoryOwner<byte> mo = memoryPool.Rent(request.Length))
                 {
                     request.CopyTo(mo.Memory);
                     mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
-                    if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
-                    {
-                        Sally7Exception.ThrowMemoryWasNotArrayBased();
-                    }
-
                     _ = await sendSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
+                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None).ConfigureAwait(false);
+                        Debug.Assert(written == request.Length);
+#else
+                        if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
+                        {
+                            Sally7Exception.ThrowMemoryWasNotArrayBased();
+                        }
+
                         sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
                         await socket.SendAsync(sendAwaitable);
+#endif
                     }
                     finally
                     {
@@ -108,7 +113,7 @@ namespace Sally7.RequestExecutor
                 Request rec;
                 int length;
 
-                using (var mo = memoryPool.Rent(bufferSize))
+                using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
                 {
                     _ = await receiveSignal.WaitAsync().ConfigureAwait(false);
                     try
@@ -123,7 +128,7 @@ namespace Sally7.RequestExecutor
                         }
                     }
 
-                    var message = mo.Memory.Slice(0, length);
+                    Memory<byte> message = mo.Memory.Slice(0, length);
                     int replyJobId = mo.Memory.Span[JobIdIndex];
 
                     if ((uint)(replyJobId - 1) >= (uint)maxRequests)
@@ -133,7 +138,7 @@ namespace Sally7.RequestExecutor
 
                     rec = jobPool.GetRequest(replyJobId);
 
-                    mo.Memory.Slice(0, length).CopyTo(rec.Buffer);
+                    message.CopyTo(rec.Buffer);
                 }
 
                 rec.Complete(length);
