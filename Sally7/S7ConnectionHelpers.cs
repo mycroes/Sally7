@@ -41,31 +41,31 @@ namespace Sally7
             return len;
         }
 
-        public static int BuildReadRequest(Span<byte> buffer, IReadOnlyList<IDataItem> dataItems)
+        public static int BuildReadRequest(Span<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
         {
             ref var read = ref buffer.Struct<ReadRequest>(17);
             read.FunctionCode = FunctionCode.Read;
-            read.ItemCount = (byte) dataItems.Count;
+            read.ItemCount = (byte) dataItems.Length;
             var parameters = MemoryMarshal.Cast<byte, RequestItem>(buffer.Slice(19));
-            for (var i = 0; i < dataItems.Count; i++)
+            for (var i = 0; i < dataItems.Length; i++)
             {
                 BuildRequestItem(ref parameters[i], dataItems[i]);
                 parameters[i].Count = dataItems[i].ReadCount;
             }
 
-            return BuildS7JobRequest(buffer, dataItems.Count * 12 + 2, 0);
+            return BuildS7JobRequest(buffer, dataItems.Length * 12 + 2, 0);
         }
 
-        public static int BuildWriteRequest(Span<byte> buffer, IReadOnlyList<IDataItem> dataItems)
+        public static int BuildWriteRequest(Span<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
         {
             var span = buffer.Slice(17); // Skip header
-            span[1] = (byte) dataItems.Count;
+            span[1] = (byte) dataItems.Length;
             span[0] = (byte) FunctionCode.Write;
             var parameters = MemoryMarshal.Cast<byte, RequestItem>(span.Slice(2));
-            var fnParameterLength = dataItems.Count * 12 + 2;
+            var fnParameterLength = dataItems.Length * 12 + 2;
             var dataLength = 0;
             var data = span.Slice(fnParameterLength);
-            for (var i = 0; i < dataItems.Count; i++)
+            for (var i = 0; i < dataItems.Length; i++)
             {
                 BuildRequestItem(ref parameters[i], dataItems[i]);
 
@@ -143,7 +143,7 @@ namespace Sally7
             maxNumberOfConcurrentRequests = s7CommunicationSetup.MaxAmqCaller;
         }
 
-        public static void ParseReadResponse(ReadOnlySpan<byte> buffer, IReadOnlyCollection<IDataItem> dataItems)
+        public static void ParseReadResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -156,7 +156,7 @@ namespace Sally7
             }
 
             ref readonly var response = ref buffer.Struct<ReadRequest>(19);
-            response.Assert((byte) dataItems.Count);
+            response.Assert((byte) dataItems.Length);
 
             if (buffer.Length != s7Header.DataLength + 21)
             {
@@ -194,7 +194,7 @@ namespace Sally7
             if (exceptions != null) throw new AggregateException(exceptions);
         }
 
-        public static void ParseWriteResponse(ReadOnlySpan<byte> buffer, IReadOnlyList<IDataItem> dataItems)
+        public static void ParseWriteResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -210,9 +210,9 @@ namespace Sally7
             {
                 ThrowHelper.ThrowAssertFailFunctionCode(FunctionCode.Write, (FunctionCode)buffer[19]);
             }
-            if (buffer[20] != dataItems.Count)
+            if (buffer[20] != dataItems.Length)
             {
-                ThrowHelper.ThrowSpecViolationUnexpectedItemsInWriteResponse(dataItems.Count, buffer[20]);
+                ThrowHelper.ThrowSpecViolationUnexpectedItemsInWriteResponse(dataItems.Length, buffer[20]);
             }
 
             if (buffer.Length != s7Header.DataLength + 21)
@@ -223,7 +223,7 @@ namespace Sally7
             var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(buffer.Slice(21));
             List<Exception>? exceptions = null;
 
-            for (var i = 0; i < dataItems.Count; i++)
+            for (var i = 0; i < dataItems.Length; i++)
             {
                 if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
 
