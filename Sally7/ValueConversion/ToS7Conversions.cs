@@ -162,7 +162,7 @@ namespace Sally7.ValueConversion
                 return 2;
             }
 
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
             var maxByteCount = Encoding.ASCII.GetMaxByteCount(value.Length);
             Span<byte> span = maxByteCount <= 256
                 ? stackalloc byte[256]

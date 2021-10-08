@@ -9,8 +9,6 @@ using Sally7.Protocol.S7.Messages;
 
 namespace Sally7
 {
-#pragma warning disable CS1591
-
     [Serializable]
     public class Sally7Exception : Exception
     {
@@ -201,8 +199,7 @@ namespace Sally7
     }
 }
 
-
-#if !NETSTANDARD2_1_OR_GREATER
+#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
@@ -211,5 +208,3 @@ namespace System.Diagnostics.CodeAnalysis
     }
 }
 #endif
-
-#pragma warning restore CS1591

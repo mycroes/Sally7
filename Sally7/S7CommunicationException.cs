@@ -87,7 +87,7 @@ namespace Sally7
         protected S7CommunicationException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            ReceivedData = (byte[]) info.GetValue(nameof(ReceivedData), typeof(byte[]));
+            ReceivedData = (byte[]?) info.GetValue(nameof(ReceivedData), typeof(byte[]));
         }
 
         /// <inheritdoc/>
