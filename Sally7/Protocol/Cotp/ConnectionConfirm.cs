@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.Cotp
 {
@@ -19,13 +18,13 @@ namespace Sally7.Protocol.Cotp
         {
             if (ConnectionConfirmAndCredit != 0b1101_0000)
             {
-                ThrowHelper.ThrowSpecViolationConnectionConfirmDoesNotMatch();
+                CotpProtocolException.ThrowSpecConnectionConfirmDoesNotMatch();
             }
             //if (DestinationReference != 46) throw new Exception("Destination reference mismatch.");
             //if (SourceReference != 0) throw new Exception("Source reference mismatch.");
             if (ClassAndOption != 0)
             {
-                ThrowHelper.ThrowSpecViolationOnlyClass0SupportedForTPKT();
+                CotpProtocolException.ThrowOnlyClass0SupportedForTPKT();
             }
         }
     }

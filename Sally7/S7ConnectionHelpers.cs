@@ -114,7 +114,7 @@ namespace Sally7
             var fixedPartLength = buffer[5];
             if (fixedPartLength < ConnectionConfirm.Size)
             {
-                ThrowHelper.ThrowSpecViolationConnectionConfirmFixedPart();
+                S7ProtocolException.ThrowReceivedDataSmallerThanConnectionConfirmFixedPart();
             }
 
             ref readonly var cc = ref buffer.Struct<ConnectionConfirm>(5);
@@ -127,7 +127,7 @@ namespace Sally7
         {
             if (buffer.Length < 19 + CommunicationSetup.Size)
             {
-                ThrowHelper.ThrowSpecViolationReceivedDataSmallerThanCommunicationSetupSize();
+                S7ProtocolException.ThrowReceivedDataSmallerThanCommunicationSetupSize();
             }
 
             ref readonly var dt = ref buffer.Struct<Data>(4);
@@ -152,7 +152,7 @@ namespace Sally7
             s7Header.Assert(MessageType.AckData);
             if (s7Header.ParamLength != 2)
             {
-                ThrowHelper.ThrowSpecViolationUnexpectedParameterLengthForRead(s7Header.ParamLength);
+                S7ProtocolException.ThrowUnexpectedParameterLengthForRead(s7Header.ParamLength);
             }
 
             ref readonly var response = ref buffer.Struct<ReadRequest>(19);
@@ -160,7 +160,7 @@ namespace Sally7
 
             if (buffer.Length != s7Header.DataLength + 21)
             {
-                ThrowHelper.ThrowSpecViolationResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
+                S7ProtocolException.ThrowResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
             }
 
             var data = buffer.Slice(21, s7Header.DataLength);
@@ -203,21 +203,21 @@ namespace Sally7
             s7Header.Assert(MessageType.AckData);
             if (s7Header.ParamLength != 2)
             {
-                ThrowHelper.ThrowSpecViolationUnexpectedParameterLengthForWrite(s7Header.ParamLength);
+                S7ProtocolException.ThrowUnexpectedParameterLengthForWrite(s7Header.ParamLength);
             }
 
             if ((FunctionCode)buffer[19] != FunctionCode.Write)
             {
-                ThrowHelper.ThrowAssertFailFunctionCode(FunctionCode.Write, (FunctionCode)buffer[19]);
+                S7ProtocolException.ThrowUnexpectedFunctionCode(FunctionCode.Write, (FunctionCode)buffer[19]);
             }
             if (buffer[20] != dataItems.Length)
             {
-                ThrowHelper.ThrowSpecViolationUnexpectedItemsInWriteResponse(dataItems.Length, buffer[20]);
+                S7ProtocolException.ThrowUnexpectedItemsInWriteResponse(dataItems.Length, buffer[20]);
             }
 
             if (buffer.Length != s7Header.DataLength + 21)
             {
-                ThrowHelper.ThrowSpecViolationResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
+                S7ProtocolException.ThrowResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
             }
 
             var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(buffer.Slice(21));

@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Sally7.Infrastructure;
 using Sally7.Internal;
 
 namespace Sally7.RequestExecutor
@@ -45,7 +44,7 @@ namespace Sally7.RequestExecutor
         {
             if (connection.Parameters == null)
             {
-                ThrowHelper.ThrowConnectionParametersNotSet();
+                Sally7SetupException.ThrowConnectionParametersNotSet();
             }
 
             Connection = connection;
@@ -61,10 +60,10 @@ namespace Sally7.RequestExecutor
             receiveChannel = Channel.CreateBounded<byte>(1);
 
             if (!Enumerable.Range(1, maxNumberOfConcurrentRequests).All(i => jobChannel.Writer.TryWrite((byte)i)))
-                ThrowHelper.ThrowFailedToInitJobChannel();
+                Sally7Exception.ThrowFailedToInitJobChannel();
 
-            if (!sendChannel.Writer.TryWrite(1)) ThrowHelper.ThrowFailedToInitSendingChannel();
-            if (!receiveChannel.Writer.TryWrite(1)) ThrowHelper.ThrowFailedToInitReceivingChannel();
+            if (!sendChannel.Writer.TryWrite(1)) Sally7Exception.ThrowFailedToInitSendingChannel();
+            if (!receiveChannel.Writer.TryWrite(1)) Sally7Exception.ThrowFailedToInitReceivingChannel();
 
             requests = Enumerable.Range(0, maxNumberOfConcurrentRequests).Select(_ => new Request()).ToArray();
 
@@ -98,7 +97,7 @@ namespace Sally7.RequestExecutor
 
                     if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
                     {
-                        ThrowHelper.ThrowMemoryWasNotArrayBased();
+                        Sally7Exception.ThrowMemoryWasNotArrayBased();
                     }
 
                     await sendChannel.Reader.ReadAsync().ConfigureAwait(false);
@@ -111,7 +110,7 @@ namespace Sally7.RequestExecutor
                     {
                         if (!sendChannel.Writer.TryWrite(id))
                         {
-                            ThrowHelper.ThrowFailedToSignalSendingChannel();
+                            Sally7Exception.ThrowFailedToSignalSendingChannel();
                         }
                     }
                 }
@@ -132,7 +131,7 @@ namespace Sally7.RequestExecutor
                     {
                         if (!receiveChannel.Writer.TryWrite(0))
                         {
-                            ThrowHelper.ThrowFailedToSignalReceivingChannel();
+                            Sally7Exception.ThrowFailedToSignalReceivingChannel();
                         }
                     }
 
@@ -141,7 +140,7 @@ namespace Sally7.RequestExecutor
 
                     if (replyJobId <= 0 || replyJobId > maxRequests)
                     {
-                        ThrowHelper.ThrowS7CommunicationInvalidJobID(replyJobId, message);
+                        S7CommunicationException.ThrowInvalidJobID(replyJobId, message);
                     }
 
                     rec = requests[replyJobId - 1];
@@ -158,7 +157,7 @@ namespace Sally7.RequestExecutor
             {
                 if (!jobChannel.Writer.TryWrite(id))
                 {
-                    ThrowHelper.ThrowFailedToReturnJobIDToPool(id);
+                    Sally7Exception.ThrowFailedToReturnJobIDToPool(id);
                 }
             }
         }

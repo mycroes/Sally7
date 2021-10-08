@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.Cotp
 {
@@ -23,17 +22,17 @@ namespace Sally7.Protocol.Cotp
         {
             if (Length != 2)
             {
-                ThrowHelper.ThrowAssertFailLengthReceived(Length);
+                CotpProtocolException.ThrowInvalidLength(Length);
             }
 
             if (DataIdentifier != 0b1111_0000)
             {
-                ThrowHelper.ThrowAssertFailDTIdentifier(DataIdentifier);
+                CotpProtocolException.ThrowInvalidDTIdentifier(DataIdentifier);
             }
 
             if ((PduNumberAndEot & 0b1_000_0000) == 0)
             {
-                ThrowHelper.ThrowAssertFailSinglePDU();
+                CotpProtocolException.ThrowNotASinglePDUReturn();
             }
         }
     }

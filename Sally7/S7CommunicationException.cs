@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace Sally7
@@ -10,7 +11,7 @@ namespace Sally7
     /// When this exception is thrown the connection should no longer be considered usable for further requests.
     /// </remarks>
     [Serializable]
-    public class S7CommunicationException : Exception
+    public class S7CommunicationException : Sally7Exception
     {
         /// <summary>
         /// Gets the data that caused this exception, if known.
@@ -95,5 +96,17 @@ namespace Sally7
             base.GetObjectData(info, context);
             info.AddValue(nameof(ReceivedData), ReceivedData, typeof(byte[]));
         }
+
+        internal static void ThrowFailedToParseResponse(ReadOnlySpan<byte> span, Exception inner)
+        {
+            byte[] data = span.ToArray();
+
+            throw new S7CommunicationException(
+                $"Failed to parse TPKT from response ({string.Join(", ", data.Select(b => b.ToString("X2")))}), " +
+                $"see the {nameof(InnerException)} property for details.", inner, data);
+        }
+
+        internal static void ThrowInvalidJobID(byte replyJobId, ReadOnlyMemory<byte> message)
+            => throw new S7CommunicationException($"Received invalid job ID '{replyJobId}' in response from PLC.", message.ToArray());
     }
 }

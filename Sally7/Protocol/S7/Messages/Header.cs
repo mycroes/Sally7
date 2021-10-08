@@ -1,6 +1,4 @@
-﻿using Sally7.Infrastructure;
-
-namespace Sally7.Protocol.S7.Messages
+﻿namespace Sally7.Protocol.S7.Messages
 {
     internal struct Header
     {
@@ -27,23 +25,23 @@ namespace Sally7.Protocol.S7.Messages
         {
             if (ProtocolId != 0x32)
             {
-                ThrowHelper.ThrowAssertFailProtocolID(ProtocolId);
+                S7ProtocolException.ThrowProtocolIDDoesNotMatch(ProtocolId);
             }
 
             if (Reserved.High != 0 || Reserved.Low != 0)
             {
-                ThrowHelper.ThrowAssertFailReservedNot0(Reserved);
+                S7ProtocolException.ThrowReservedNot0(Reserved);
             }
 
             if ((MessageType == MessageType.AckData || MessageType == MessageType.Ack) &&
                 (ErrorClass != HeaderErrorClass.NoError || ErrorCode != 0))
             {
-                ThrowHelper.ThrowAssertFailCommunication(MessageType, ErrorClass, ErrorCode);
+                S7ProtocolException.ThrowCommunicationFailure(MessageType, ErrorClass, ErrorCode);
             }
 
             if (MessageType != messageType)
             {
-                ThrowHelper.ThrowAssertFailMessageType(messageType, MessageType);
+                S7ProtocolException.ThrowIncorrectMessageType(messageType, MessageType);
             }
         }
     }

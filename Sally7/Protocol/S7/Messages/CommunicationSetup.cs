@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using Sally7.Infrastructure;
 
 namespace Sally7.Protocol.S7.Messages
 {
@@ -27,12 +26,12 @@ namespace Sally7.Protocol.S7.Messages
         {
             if (FunctionCode != functionCode)
             {
-                ThrowHelper.ThrowAssertFailFunctionCode(FunctionCode, functionCode);
+                S7ProtocolException.ThrowUnexpectedFunctionCode(FunctionCode, functionCode);
             }
 
             if (Reserved != 0)
             {
-                ThrowHelper.ThrowAssertFailReservedNot0(Reserved);
+                S7ProtocolException.ThrowIncorrectReserved(Reserved);
             }
         }
     }

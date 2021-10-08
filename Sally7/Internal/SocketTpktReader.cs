@@ -25,7 +25,9 @@ namespace Sally7.Internal
         public async ValueTask<int> ReadAsync(Memory<byte> message)
         {
             if (!MemoryMarshal.TryGetArray<byte>(message, out var segment))
-                ThrowHelper.ThrowMemoryWasNotArrayBased();
+            {
+                Sally7Exception.ThrowMemoryWasNotArrayBased();
+            }
 
             args.SetBuffer(segment.Array, segment.Offset, TpktSize);
 
@@ -40,7 +42,7 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
-                    ThrowHelper.ThrowConnectionWasClosedWhileReading();
+                    TpktException.ThrowConnectionWasClosedWhileReading();
 
                 count += args.BytesTransferred;
 
@@ -54,7 +56,7 @@ namespace Sally7.Internal
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
-                    ThrowHelper.ThrowConnectionWasClosedWhileReading();
+                    TpktException.ThrowConnectionWasClosedWhileReading();
 
                 count += args.BytesTransferred;
             }
@@ -73,7 +75,7 @@ namespace Sally7.Internal
             }
             catch (Exception e)
             {
-                ThrowHelper.ThrowS7Communication(span, e);
+                S7CommunicationException.ThrowFailedToParseResponse(span, e);
                 return -1;  // to make the compiler happy
             }
         }

@@ -18,17 +18,17 @@ namespace Sally7.Protocol.IsoOverTcp
         {
             if (Version != IsoVersion)
             {
-                ThrowHelper.ThrowSpecViolationTPKTHeaderIncorrectVersion();
+                TpktException.ThrowIncorrectHeaderVersion();
             }
 
             if (Reserved != 0)
             {
-                ThrowHelper.ThrowSpecViolationTPKTReseveredNot0();
+                TpktException.ThrowReseveredNot0();
             }
 
             if (Length.High == 0 && Length.Low < 7)
             {
-                ThrowHelper.ThrowSpecViolationTPKTLengthSmallerThan7();
+                TpktException.ThrowLengthSmallerThan7();
             }
         }
 

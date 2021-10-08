@@ -56,7 +56,7 @@ namespace Sally7.Internal
         {
             if (EventArgs.SocketError != SocketError.Success)
             {
-                ThrowHelper.ThrowSocketException(EventArgs.SocketError);
+                Sally7Exception.ThrowSocketException(EventArgs.SocketError);
             }
         }
     }
