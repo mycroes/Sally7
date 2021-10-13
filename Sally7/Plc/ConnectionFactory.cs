@@ -17,7 +17,7 @@ namespace Sally7.Plc
                 case CpuType.S7_1500:
                     return new Tsap(0x10, 0x02);
                 default:
-                    Sally7SetupException.ThrowCpuTypeNotSupported(cpuType);
+                    Sally7CommunicationSetupException.ThrowCpuTypeNotSupported(cpuType);
                     return default; // to make the compiler happy
             }
         }
@@ -32,12 +32,12 @@ namespace Sally7.Plc
                 case CpuType.S7_400:
                 case CpuType.S7_1200:
                 case CpuType.S7_1500:
-                    if (rack == null) Sally7SetupException.ThrowDestinationRackIsNull(cpuType, rack);
-                    if (slot == null) Sally7SetupException.ThrowDestinationSlotIsNull(cpuType, slot);
+                    if (rack == null) Sally7CommunicationSetupException.ThrowDestinationRackIsNull(cpuType, rack);
+                    if (slot == null) Sally7CommunicationSetupException.ThrowDestinationSlotIsNull(cpuType, slot);
 
                     return new Tsap(0x03, (byte) ((rack.GetValueOrDefault() << 5) | slot.GetValueOrDefault()));
                 default:
-                    Sally7SetupException.ThrowCpuTypeNotSupported(cpuType);
+                    Sally7CommunicationSetupException.ThrowCpuTypeNotSupported(cpuType);
                     return default; // to make the compiler happy
             }
         }

@@ -44,7 +44,7 @@ namespace Sally7.RequestExecutor
         {
             if (connection.Parameters == null)
             {
-                Sally7SetupException.ThrowConnectionParametersNotSet();
+                Sally7CommunicationSetupException.ThrowConnectionParametersNotSet();
             }
 
             Connection = connection;

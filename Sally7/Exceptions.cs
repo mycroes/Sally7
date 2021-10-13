@@ -47,12 +47,12 @@ namespace Sally7
     }
 
     [Serializable]
-    public class Sally7SetupException : Exception
+    internal class Sally7CommunicationSetupException : Sally7Exception
     {
-        public Sally7SetupException() { }
-        public Sally7SetupException(string message) : base(message) { }
-        public Sally7SetupException(string message, Exception inner) : base(message, inner) { }
-        protected Sally7SetupException(
+        public Sally7CommunicationSetupException() { }
+        public Sally7CommunicationSetupException(string message) : base(message) { }
+        public Sally7CommunicationSetupException(string message, Exception inner) : base(message, inner) { }
+        protected Sally7CommunicationSetupException(
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
@@ -194,7 +194,7 @@ namespace Sally7
             => throw new TpktException($"Error while reading TPKT data, expected {msgLen} bytes but received {len}.");
 
         internal static void ThrowReseveredNot0()
-            => throw new TpktException("Spec violoation: TPKT reserved is not 0.");
+            => throw new TpktException("Spec violation: TPKT reserved is not 0.");
 
         internal static void ThrowConnectionWasClosedWhileReading()
            => throw new TpktException("Connection was closed while reading.");
