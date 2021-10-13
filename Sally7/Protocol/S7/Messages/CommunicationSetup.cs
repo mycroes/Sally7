@@ -1,11 +1,10 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Sally7.Protocol.S7.Messages
 {
     internal struct CommunicationSetup
     {
-        public static readonly byte Size = (byte) Unsafe.SizeOf<CommunicationSetup>();
+        public static readonly byte Size = (byte)Unsafe.SizeOf<CommunicationSetup>();
 
         public FunctionCode FunctionCode;
         public byte Reserved;
@@ -22,10 +21,18 @@ namespace Sally7.Protocol.S7.Messages
             PduSize = pduSize;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Assert(FunctionCode functionCode)
         {
-            if (FunctionCode != functionCode) throw new Exception($"Expected function code {functionCode}, received {FunctionCode}.");
-            if (Reserved != 0) throw new Exception($"Expected reserved 0, received {Reserved}");
+            if (FunctionCode != functionCode)
+            {
+                S7ProtocolException.ThrowUnexpectedFunctionCode(FunctionCode, functionCode);
+            }
+
+            if (Reserved != 0)
+            {
+                S7ProtocolException.ThrowIncorrectReserved(Reserved);
+            }
         }
     }
 }

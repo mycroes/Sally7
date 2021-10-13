@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using Sally7.Infrastructure;
@@ -100,8 +101,7 @@ namespace Sally7
             await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
             var stream = TcpClient.GetStream();
 
-            // TODO: use memory from the pool
-            var buffer = new byte[100];
+            var buffer = ArrayPool<byte>.Shared.Rent(100);
 
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
             var length = await ReadTpktAsync(stream, buffer).ConfigureAwait(false);
@@ -115,6 +115,8 @@ namespace Sally7
             bufferSize = Parameters.GetRequiredBufferSize();
 
             requestExecutor = executorFactory.Invoke(this);
+
+            ArrayPool<byte>.Shared.Return(buffer);
         }
 
         public async Task ReadAsync(params IDataItem[] dataItems)
@@ -149,15 +151,24 @@ namespace Sally7
 
         private IRequestExecutor GetExecutorOrThrow()
         {
-            return requestExecutor ??
-                throw new InvalidOperationException("Can't perform read when the connection is not yet open.");
+            if (requestExecutor is null)
+            {
+                Throw();
+                [DoesNotReturn]
+                static void Throw() => throw new InvalidOperationException("Can't perform read when the connection is not yet open.");
+            }
+
+            return requestExecutor;
         }
 
         private static async Task<int> ReadTpktAsync(NetworkStream stream, byte[] buffer)
         {
             var len = await stream.ReadAsync(buffer, 0, 4).ConfigureAwait(false);
             if (len < 4)
-                throw new Exception($"Error while reading TPKT header, expected 4 bytes but received {len}.");
+            {
+                Throw(len);
+                static void Throw(int len) => throw new Exception($"Error while reading TPKT header, expected 4 bytes but received {len}.");
+            }
 
             var tpkt = buffer.AsSpan().Struct<Tpkt>(0);
             tpkt.Assert();
@@ -165,7 +176,7 @@ namespace Sally7
             len = await stream.ReadAsync(buffer, 4, msgLen).ConfigureAwait(false);
             if (len != msgLen)
             {
-                throw new Exception($"Error while reading TPKT data, expected {msgLen} bytes but received {len}.");
+                TpktException.ThrowReadUnexptectedByteCount(msgLen, len);
             }
 
             return tpkt.Length;

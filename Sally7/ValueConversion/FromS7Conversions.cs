@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Linq;
+using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -10,61 +9,46 @@ namespace Sally7.ValueConversion
     {
         public static Delegate GetConverter<TValue>()
         {
-            var type = typeof(TValue);
-
-            if (type.IsPrimitive || type.IsEnum)
+            if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
             {
-                switch (Unsafe.SizeOf<TValue>())
+                return Unsafe.SizeOf<TValue>() switch
                 {
-                    case sizeof(long):
-                        return new ConvertFromS7<long>(ConvertToLong);
-                    case sizeof(int):
-                        return new ConvertFromS7<int>(ConvertToInt);
-                    case sizeof(short):
-                        return new ConvertFromS7<short>(ConvertToShort);
-                    case sizeof(byte):
-                        return new ConvertFromS7<byte>(ConvertToByte);
-                    default:
-                        throw new NotImplementedException();
-                }
+                    sizeof(long) => new ConvertFromS7<long>(ConvertToLong),
+                    sizeof(int) => new ConvertFromS7<int>(ConvertToInt),
+                    sizeof(short) => new ConvertFromS7<short>(ConvertToShort),
+                    sizeof(byte) => new ConvertFromS7<byte>(ConvertToByte),
+                    _ => throw new NotImplementedException(),
+                };
             }
 
-            if (type == typeof(bool[]))
+            if (typeof(TValue) == typeof(bool[]))
                 return new ConvertFromS7<bool[]>(ConvertToBoolArray);
 
-            if (type.IsArray)
+            if (typeof(TValue).IsArray)
             {
-                var elementType = type.GetElementType() ?? throw new Exception(
+                var elementType = typeof(TValue).GetElementType() ?? throw new Exception(
                     $"Type {typeof(TValue)} doesn't have an ElementType.");
 
                 if (elementType.IsPrimitive || elementType.IsEnum)
                 {
-                    switch (ConversionHelper.SizeOf(elementType))
+                    return ConversionHelper.SizeOf(elementType) switch
                     {
-                        case sizeof(long):
-                            return new ConvertFromS7<long[]>(ConvertToLongArray<TValue>);
-                        case sizeof(int):
-                            return new ConvertFromS7<int[]>(ConvertToIntArray<TValue>);
-                        case sizeof(short):
-                            return new ConvertFromS7<short[]>(ConvertToShortArray<TValue>);
-                        case sizeof(byte):
-                            return new ConvertFromS7<byte[]>(ConvertToByteArray<TValue>);
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        sizeof(long) => new ConvertFromS7<long[]>(ConvertToLongArray<TValue>),
+                        sizeof(int) => new ConvertFromS7<int[]>(ConvertToIntArray<TValue>),
+                        sizeof(short) => new ConvertFromS7<short[]>(ConvertToShortArray<TValue>),
+                        sizeof(byte) => new ConvertFromS7<byte[]>(ConvertToByteArray<TValue>),
+                        _ => throw new NotImplementedException(),
+                    };
                 }
             }
 
-            if (type == typeof(string)) return new ConvertFromS7<string>(ConvertToString);
+            if (typeof(TValue) == typeof(string)) return new ConvertFromS7<string>(ConvertToString);
 
             throw new NotImplementedException();
         }
 
         private static void ConvertToLong(ref long value, ReadOnlySpan<byte> input, int length)
-        {
-            value = (long) (uint) (input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3]) << 32 |
-                (uint) (input[4] << 24 | input[5] << 16 | input[6] << 8 | input[7]);
-        }
+            => value = BinaryPrimitives.ReadInt64BigEndian(input);
 
         private static void ConvertToLongArray<TTarget>(ref long[]? value, ReadOnlySpan<byte> input, int length)
         {
@@ -75,9 +59,7 @@ namespace Sally7.ValueConversion
         }
 
         private static void ConvertToInt(ref int value, ReadOnlySpan<byte> input, int length)
-        {
-            value = input[0] << 24 | input[1] << 16 | input[2] << 8 | input[3];
-        }
+            => value = BinaryPrimitives.ReadInt32BigEndian(input);
 
         private static void ConvertToIntArray<TTarget>(ref int[]? value, ReadOnlySpan<byte> input, int length)
         {
@@ -88,9 +70,7 @@ namespace Sally7.ValueConversion
         }
 
         private static void ConvertToShort(ref short value, ReadOnlySpan<byte> input, int length)
-        {
-            value = (short) (input[0] << 8 | input[1]);
-        }
+            => value = BinaryPrimitives.ReadInt16BigEndian(input);
 
         private static void ConvertToShortArray<TTarget>(ref short[]? value, ReadOnlySpan<byte> input, int length)
         {
@@ -101,9 +81,7 @@ namespace Sally7.ValueConversion
         }
 
         private static void ConvertToByte(ref byte value, ReadOnlySpan<byte> input, int length)
-        {
-            value = input[0];
-        }
+            => value = input[0];
 
         private static void ConvertToByteArray<TTarget>(ref byte[]? value, ReadOnlySpan<byte> input, int length)
         {
@@ -114,12 +92,32 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToBoolArray(ref bool[]? value, ReadOnlySpan<byte> input, int length)
         {
-            value = new BitArray(input.Slice(0, (length + 7) / 8).ToArray()).Cast<bool>().Take(length).ToArray();
+            value ??= new bool[length];
+            input = input.Slice(0, (length + 7) >> 3);      // (length + 7) / 8
+
+            int valueIdx = 0;
+
+            foreach (byte b in input)
+            {
+                for (int i = 0; i < 8; ++i)
+                {
+                    if ((uint)valueIdx >= (uint)value.Length)
+                    {
+                        return;
+                    }
+
+                    value[valueIdx++] = (b & (1 << i)) != 0;
+                }
+            }
         }
 
         private static void ConvertToString(ref string? value, ReadOnlySpan<byte> input, int length)
         {
+#if NETSTANDARD2_1_OR_GREATER
+            value = Encoding.ASCII.GetString(input.Slice(2, input[1]));
+#else
             value = Encoding.ASCII.GetString(input.Slice(2, input[1]).ToArray());
+#endif
         }
     }
 }

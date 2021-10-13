@@ -1,5 +1,4 @@
-﻿using System;
-using Sally7.Protocol.Cotp;
+﻿using Sally7.Protocol.Cotp;
 
 namespace Sally7.Plc
 {
@@ -18,7 +17,8 @@ namespace Sally7.Plc
                 case CpuType.S7_1500:
                     return new Tsap(0x10, 0x02);
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(cpuType));
+                    Sally7CommunicationSetupException.ThrowCpuTypeNotSupported(cpuType);
+                    return default; // to make the compiler happy
             }
         }
 
@@ -32,12 +32,13 @@ namespace Sally7.Plc
                 case CpuType.S7_400:
                 case CpuType.S7_1200:
                 case CpuType.S7_1500:
-                    if (rack == null) throw new ArgumentNullException(nameof(rack), $"CpuType {cpuType} requires a value for {nameof(rack)}.");
-                    if (slot == null) throw new ArgumentNullException(nameof(slot), $"CpuType {cpuType} requires a value for {nameof(slot)}.");
+                    if (rack == null) Sally7CommunicationSetupException.ThrowDestinationRackIsNull(cpuType, rack);
+                    if (slot == null) Sally7CommunicationSetupException.ThrowDestinationSlotIsNull(cpuType, slot);
 
-                    return new Tsap(0x03, (byte) ((rack << 5) | slot));
+                    return new Tsap(0x03, (byte) ((rack.GetValueOrDefault() << 5) | slot.GetValueOrDefault()));
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(cpuType));
+                    Sally7CommunicationSetupException.ThrowCpuTypeNotSupported(cpuType);
+                    return default; // to make the compiler happy
             }
         }
 

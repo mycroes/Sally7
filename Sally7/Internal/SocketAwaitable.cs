@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Sally7.Infrastructure;
 
 namespace Sally7.Internal
 {
@@ -54,7 +55,9 @@ namespace Sally7.Internal
         public void GetResult()
         {
             if (EventArgs.SocketError != SocketError.Success)
-                throw new SocketException((int) EventArgs.SocketError);
+            {
+                Sally7Exception.ThrowSocketException(EventArgs.SocketError);
+            }
         }
     }
 }

@@ -90,7 +90,7 @@ namespace Sally7
             }
             else if (typeof(TValue) == typeof(bool[]))
             {
-                ReadCount = (length + 7) / 8;
+                ReadCount = (length + 7) >> 3;      // bit-hack for (length + 7) / 8
             }
             else
             {
