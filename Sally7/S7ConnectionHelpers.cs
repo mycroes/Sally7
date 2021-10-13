@@ -46,7 +46,13 @@ namespace Sally7
             ref var read = ref buffer.Struct<ReadRequest>(17);
             read.FunctionCode = FunctionCode.Read;
             read.ItemCount = (byte) dataItems.Length;
-            var parameters = MemoryMarshal.Cast<byte, RequestItem>(buffer.Slice(19));
+            Span<RequestItem> parameters = MemoryMarshal.Cast<byte, RequestItem>(buffer.Slice(19));
+
+            if (dataItems.Length > parameters.Length)
+            {
+                S7ProtocolException.ThrowDataItemCountExceedsParameterCount(dataItems.Length, parameters.Length);
+            }
+
             for (var i = 0; i < dataItems.Length; i++)
             {
                 BuildRequestItem(ref parameters[i], dataItems[i]);
@@ -61,10 +67,17 @@ namespace Sally7
             var span = buffer.Slice(17); // Skip header
             span[1] = (byte) dataItems.Length;
             span[0] = (byte) FunctionCode.Write;
-            var parameters = MemoryMarshal.Cast<byte, RequestItem>(span.Slice(2));
+            Span<RequestItem> parameters = MemoryMarshal.Cast<byte, RequestItem>(span.Slice(2));
+
+            if (dataItems.Length > parameters.Length)
+            {
+                S7ProtocolException.ThrowDataItemCountExceedsParameterCount(dataItems.Length, parameters.Length);
+            }
+
             var fnParameterLength = dataItems.Length * 12 + 2;
             var dataLength = 0;
             var data = span.Slice(fnParameterLength);
+
             for (var i = 0; i < dataItems.Length; i++)
             {
                 BuildRequestItem(ref parameters[i], dataItems[i]);
@@ -90,7 +103,7 @@ namespace Sally7
             return BuildS7JobRequest(buffer, fnParameterLength, dataLength);
         }
 
-        private static void BuildRequestItem(ref RequestItem requestItem, in IDataItem dataItem)
+        private static void BuildRequestItem(ref RequestItem requestItem, IDataItem dataItem)
         {
             requestItem.Init();
             requestItem.Address = dataItem.Address;

@@ -106,6 +106,9 @@ namespace Sally7
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
+        internal static void ThrowDataItemCountExceedsParameterCount(int dataItemCount, int parameterCount)
+            => throw new S7ProtocolException($"Protocol only allows {parameterCount} data items, given: {dataItemCount}");
+
         internal static void ThrowIncorrectMessageType(MessageType expected, MessageType actual)
              => throw new S7ProtocolException($"Expected message type {expected}, received {actual}.");
 
