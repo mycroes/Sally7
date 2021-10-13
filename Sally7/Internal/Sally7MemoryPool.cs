@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Sally7.Infrastructure
+namespace Sally7.Internal
 {
     [DebuggerNonUserCode]
     internal sealed class Sally7MemoryPool : MemoryPool<byte>
