@@ -52,7 +52,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToLongArray<TTarget>(ref long[]? value, ReadOnlySpan<byte> input, int length)
         {
-            value ??= Unsafe.As<long[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<long[]>(Array.CreateInstance(typeof(TTarget).GetElementType()!, length));
 
             for (var i = 0; i < input.Length / sizeof(long); i++)
                 ConvertToLong(ref value![i], input.Slice(i * sizeof(long)), 1);
@@ -63,7 +63,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToIntArray<TTarget>(ref int[]? value, ReadOnlySpan<byte> input, int length)
         {
-            value ??= Unsafe.As<int[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<int[]>(Array.CreateInstance(typeof(TTarget).GetElementType()!, length));
 
             for (var i = 0; i < input.Length / sizeof(int); i++)
                 ConvertToInt(ref value![i], input.Slice(i * sizeof(int)), 1);
@@ -74,7 +74,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToShortArray<TTarget>(ref short[]? value, ReadOnlySpan<byte> input, int length)
         {
-            value ??= Unsafe.As<short[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<short[]>(Array.CreateInstance(typeof(TTarget).GetElementType()!, length));
 
             for (var i = 0; i < input.Length / sizeof(short); i++)
                 ConvertToShort(ref value![i], input.Slice(i * sizeof(short)), 1);
@@ -85,7 +85,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToByteArray<TTarget>(ref byte[]? value, ReadOnlySpan<byte> input, int length)
         {
-            value ??= Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType(), length));
+            value ??= Unsafe.As<byte[]>(Array.CreateInstance(typeof(TTarget).GetElementType()!, length));
 
             input.CopyTo(value);
         }
@@ -113,7 +113,7 @@ namespace Sally7.ValueConversion
 
         private static void ConvertToString(ref string? value, ReadOnlySpan<byte> input, int length)
         {
-#if NETSTANDARD2_1_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
             value = Encoding.ASCII.GetString(input.Slice(2, input[1]));
 #else
             value = Encoding.ASCII.GetString(input.Slice(2, input[1]).ToArray());

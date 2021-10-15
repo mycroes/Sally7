@@ -87,7 +87,7 @@ namespace Sally7
         protected S7CommunicationException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            ReceivedData = (byte[]) info.GetValue(nameof(ReceivedData), typeof(byte[]));
+            ReceivedData = (byte[]?) info.GetValue(nameof(ReceivedData), typeof(byte[]));
         }
 
         /// <inheritdoc/>
@@ -106,7 +106,7 @@ namespace Sally7
                 $"see the {nameof(InnerException)} property for details.", inner, data);
         }
 
-        internal static void ThrowInvalidJobID(byte replyJobId, ReadOnlyMemory<byte> message)
+        internal static void ThrowInvalidJobID(int replyJobId, ReadOnlyMemory<byte> message)
             => throw new S7CommunicationException($"Received invalid job ID '{replyJobId}' in response from PLC.", message.ToArray());
     }
 }

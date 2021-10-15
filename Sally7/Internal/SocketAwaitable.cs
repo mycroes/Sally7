@@ -2,7 +2,6 @@
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using Sally7.Infrastructure;
 
 namespace Sally7.Internal
 {
