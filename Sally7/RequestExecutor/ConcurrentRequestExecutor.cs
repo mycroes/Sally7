@@ -26,7 +26,10 @@ namespace Sally7.RequestExecutor
         private readonly JobPool jobPool;
         private readonly Signal sendSignal;
         private readonly Signal receiveSignal;
+
+#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
         private readonly SocketAwaitable sendAwaitable;
+#endif
 
         /// <inheritdoc/>
         public S7Connection Connection { get; }
@@ -60,7 +63,10 @@ namespace Sally7.RequestExecutor
             if (!receiveSignal.TryInit()) Sally7Exception.ThrowFailedToInitReceivingSignal();
 
             reader = new SocketTpktReader(socket);
+
+#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
             sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
+#endif
         }
 
         public void Dispose()
@@ -86,6 +92,10 @@ namespace Sally7.RequestExecutor
                     _ = await sendSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
+                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None).ConfigureAwait(false);
+                        Debug.Assert(written == request.Length);
+#else
                         if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
                         {
                             Sally7Exception.ThrowMemoryWasNotArrayBased();
@@ -93,6 +103,7 @@ namespace Sally7.RequestExecutor
 
                         sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
                         await socket.SendAsync(sendAwaitable);
+#endif
                     }
                     finally
                     {

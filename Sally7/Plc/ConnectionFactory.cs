@@ -46,12 +46,5 @@ namespace Sally7.Plc
         {
             return new S7Connection(host, GetSourceTsap(cpuType), GetDestinationTsap(cpuType, rack, slot));
         }
-
-#if NETSTANDARD2_1 || NET5_0_OR_GREATER
-        public static S7ConnectionValueTask GetConnectionValueTask(string host, CpuType cpuType, int? rack = null, int? slot = null)
-        {
-            return new S7ConnectionValueTask(host, GetSourceTsap(cpuType), GetDestinationTsap(cpuType, rack, slot));
-        }
-#endif
     }
 }
