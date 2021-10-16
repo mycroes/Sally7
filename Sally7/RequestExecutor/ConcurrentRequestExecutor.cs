@@ -2,7 +2,10 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Sally7.Internal;
 
@@ -147,16 +150,121 @@ namespace Sally7.RequestExecutor
                 rec.Complete(length);
 
                 // await the actual completion before returning this job ID to the pool
-                Request req = jobPool.GetRequest(jobId);
-#if NETSTANDARD2_1 || NET5_0_OR_GREATER
-                return await req.GetValueTask().ConfigureAwait(false);
-#else
-                return await req;
-#endif
+                return await jobPool.GetRequest(jobId);
             }
             finally
             {
                 jobPool.ReturnJobId(jobId);
+            }
+        }
+
+        private class JobPool : IDisposable
+        {
+            private readonly Channel<int> jobIdPool;
+            private readonly Request[] requests;
+
+            public JobPool(int maxNumberOfConcurrentRequests)
+            {
+                jobIdPool = Channel.CreateBounded<int>(maxNumberOfConcurrentRequests);
+                requests = new Request[maxNumberOfConcurrentRequests];
+
+                for (int i = 0; i < maxNumberOfConcurrentRequests; ++i)
+                {
+                    if (!jobIdPool.Writer.TryWrite(i + 1))
+                    {
+                        Sally7Exception.ThrowFailedToInitJobPool();
+                    }
+
+                    requests[i] = new Request();
+                }
+            }
+
+            public void Dispose() => jobIdPool.Writer.Complete();
+
+            public ValueTask<int> RentJobIdAsync() => jobIdPool.Reader.ReadAsync();
+
+            public void ReturnJobId(int jobId)
+            {
+                if (!jobIdPool.Writer.TryWrite(jobId))
+                {
+                    Sally7Exception.ThrowFailedToReturnJobIDToPool(jobId);
+                }
+            }
+
+            [DebuggerNonUserCode]
+            public Request GetRequest(int jobId) => requests[jobId - 1];
+
+            public void SetBufferForRequest(int jobId, Memory<byte> buffer)
+            {
+                Request req = GetRequest(jobId);
+                req.Reset();
+                req.SetBuffer(buffer);
+            }
+        }
+
+        [DebuggerNonUserCode]
+        [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
+        private class Signal : IDisposable
+        {
+            private readonly Channel<int> channel = Channel.CreateBounded<int>(1);
+
+            public void Dispose() => channel.Writer.Complete();
+
+            public bool TryInit() => channel.Writer.TryWrite(0);
+
+            public ValueTask<int> WaitAsync() => channel.Reader.ReadAsync();
+
+            public bool TryRelease() => channel.Writer.TryWrite(0);
+
+            private bool NeedToWait => channel.Reader.Count == 0;
+        }
+
+        private class Request : INotifyCompletion
+        {
+            private static readonly Action Sentinel = () => { };
+
+            private Memory<byte> buffer;
+
+            public bool IsCompleted { get; private set; }
+            private int length;
+            private Action? continuation = Sentinel;
+
+            public Memory<byte> Buffer => buffer;
+
+            public void Complete(int length)
+            {
+                this.length = length;
+                IsCompleted = true;
+
+                var prev = continuation ?? Interlocked.CompareExchange(ref continuation, Sentinel, null);
+                prev?.Invoke();
+            }
+
+            public Memory<byte> GetResult()
+            {
+                return buffer.Slice(0, length);
+            }
+
+            public Request GetAwaiter() => this;
+
+            public void OnCompleted(Action continuation)
+            {
+                if (this.continuation == Sentinel ||
+                    Interlocked.CompareExchange(ref this.continuation, continuation, null) == Sentinel)
+                {
+                    continuation.Invoke();
+                }
+            }
+
+            public void Reset()
+            {
+                continuation = null;
+                IsCompleted = false;
+            }
+
+            public void SetBuffer(Memory<byte> buffer)
+            {
+                this.buffer = buffer;
             }
         }
     }
