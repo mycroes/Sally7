@@ -147,7 +147,12 @@ namespace Sally7.RequestExecutor
                 rec.Complete(length);
 
                 // await the actual completion before returning this job ID to the pool
-                return await jobPool.GetRequest(jobId);
+                Request req = jobPool.GetRequest(jobId);
+#if NETSTANDARD2_1 || NET5_0_OR_GREATER
+                return await req.GetValueTask().ConfigureAwait(false);
+#else
+                return await req;
+#endif
             }
             finally
             {

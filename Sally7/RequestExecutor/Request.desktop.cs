@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
+
+using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -25,10 +27,7 @@ namespace Sally7.RequestExecutor
             prev?.Invoke();
         }
 
-        public Memory<byte> GetResult()
-        {
-            return buffer.Slice(0, length);
-        }
+        public Memory<byte> GetResult() => buffer.Slice(0, length);
 
         public Request GetAwaiter() => this;
 
@@ -47,9 +46,8 @@ namespace Sally7.RequestExecutor
             IsCompleted = false;
         }
 
-        public void SetBuffer(Memory<byte> buffer)
-        {
-            this.buffer = buffer;
-        }
+        public void SetBuffer(Memory<byte> buffer) => this.buffer = buffer;
     }
 }
+
+#endif
