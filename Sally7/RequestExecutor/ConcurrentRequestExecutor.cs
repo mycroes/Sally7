@@ -235,6 +235,7 @@ namespace Sally7.RequestExecutor
             public void Complete(int length)
             {
                 this.length = length;
+                IsCompleted = true;
 
                 var prev = continuation ?? Interlocked.CompareExchange(ref continuation, Sentinel, null);
                 prev?.Invoke();
