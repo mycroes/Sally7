@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Sally7.Internal
 {
-    internal partial class SocketTpktReader
+    internal partial class SocketTpktReaderValueTask
     {
-        public SocketTpktReader(Socket socket) => this.socket = socket;
+        public SocketTpktReaderValueTask(Socket socket) => this.socket = socket;
 
         public async ValueTask<int> ReadAsync(Memory<byte> message)
         {

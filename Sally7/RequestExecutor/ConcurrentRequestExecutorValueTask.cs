@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if NETSTANDARD2_1 || NET5_0_OR_GREATER
+
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -14,7 +16,7 @@ namespace Sally7.RequestExecutor
     /// <summary>
     /// Provides a concurrent request executor that makes use of job ids in the S7 protocol to process responses.
     /// </summary>
-    internal sealed class ConcurrentRequestExecutor : IRequestExecutor
+    internal sealed class ConcurrentRequestExecutorValueTask : IRequestExecutorValueTask
     {
         private const int JobIdIndex = 12;
 
@@ -22,14 +24,13 @@ namespace Sally7.RequestExecutor
         private readonly int bufferSize;
         private readonly int maxRequests;
         private readonly MemoryPool<byte> memoryPool;
-        private readonly SocketTpktReader reader;
+        private readonly SocketTpktReaderValueTask reader;
         private readonly JobPool jobPool;
         private readonly Signal sendSignal;
         private readonly Signal receiveSignal;
-        private readonly SocketAwaitable sendAwaitable;
 
         /// <inheritdoc/>
-        public S7Connection Connection { get; }
+        public S7ConnectionValueTask Connection { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConcurrentRequestExecutor"/> class with the specified
@@ -39,7 +40,7 @@ namespace Sally7.RequestExecutor
         /// <param name="memoryPool">
         /// The <see cref="MemoryPool{T}" /> that is used for request and response memory allocations.
         /// </param>
-        public ConcurrentRequestExecutor(S7Connection connection, MemoryPool<byte>? memoryPool = default)
+        public ConcurrentRequestExecutorValueTask(S7ConnectionValueTask connection, MemoryPool<byte>? memoryPool = default)
         {
             if (connection.Parameters == null)
             {
@@ -59,8 +60,7 @@ namespace Sally7.RequestExecutor
             if (!sendSignal.TryInit()) Sally7Exception.ThrowFailedToInitSendingSignal();
             if (!receiveSignal.TryInit()) Sally7Exception.ThrowFailedToInitReceivingSignal();
 
-            reader = new SocketTpktReader(socket);
-            sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
+            reader = new SocketTpktReaderValueTask(socket);
         }
 
         public void Dispose()
@@ -86,13 +86,8 @@ namespace Sally7.RequestExecutor
                     _ = await sendSignal.WaitAsync().ConfigureAwait(false);
                     try
                     {
-                        if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
-                        {
-                            Sally7Exception.ThrowMemoryWasNotArrayBased();
-                        }
-
-                        sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
-                        await socket.SendAsync(sendAwaitable);
+                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None).ConfigureAwait(false);
+                        Debug.Assert(written == request.Length);
                     }
                     finally
                     {
@@ -258,3 +253,5 @@ namespace Sally7.RequestExecutor
         }
     }
 }
+
+#endif

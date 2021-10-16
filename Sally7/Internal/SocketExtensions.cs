@@ -1,6 +1,4 @@
-﻿#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
-
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 
 namespace Sally7.Internal
 {
@@ -29,5 +27,3 @@ namespace Sally7.Internal
         }
     }
 }
-
-#endif
