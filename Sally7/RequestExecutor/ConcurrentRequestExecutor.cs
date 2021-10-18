@@ -82,7 +82,7 @@ namespace Sally7.RequestExecutor
             int jobId = await jobPool.RentJobIdAsync().ConfigureAwait(false);
             try
             {
-                Request req = jobPool.GetRequestAndSetBuffer(jobId, response);
+                jobPool.SetBufferForRequest(jobId, response);
 
                 using (IMemoryOwner<byte> mo = memoryPool.Rent(request.Length))
                 {
@@ -150,7 +150,7 @@ namespace Sally7.RequestExecutor
                 rec.Complete(length);
 
                 // await the actual completion before returning this job ID to the pool
-                return await req;
+                return await jobPool.GetRequest(jobId);
             }
             finally
             {
@@ -191,15 +191,14 @@ namespace Sally7.RequestExecutor
                 }
             }
 
+            [DebuggerNonUserCode]
             public Request GetRequest(int jobId) => requests[jobId - 1];
 
-            public Request GetRequestAndSetBuffer(int jobId, Memory<byte> buffer)
+            public void SetBufferForRequest(int jobId, Memory<byte> buffer)
             {
                 Request req = GetRequest(jobId);
                 req.Reset();
                 req.SetBuffer(buffer);
-
-                return req;
             }
         }
 
@@ -207,13 +206,13 @@ namespace Sally7.RequestExecutor
         [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
         private class Signal : IDisposable
         {
-            private readonly Channel<byte> channel = Channel.CreateBounded<byte>(1);
+            private readonly Channel<int> channel = Channel.CreateBounded<int>(1);
 
             public void Dispose() => channel.Writer.Complete();
 
             public bool TryInit() => channel.Writer.TryWrite(0);
 
-            public ValueTask<byte> WaitAsync() => channel.Reader.ReadAsync();
+            public ValueTask<int> WaitAsync() => channel.Reader.ReadAsync();
 
             public bool TryRelease() => channel.Writer.TryWrite(0);
 
@@ -235,6 +234,7 @@ namespace Sally7.RequestExecutor
             public void Complete(int length)
             {
                 this.length = length;
+                IsCompleted = true;
 
                 var prev = continuation ?? Interlocked.CompareExchange(ref continuation, Sentinel, null);
                 prev?.Invoke();

@@ -24,21 +24,8 @@
     <PackageReference Include="SourceLink.Copy.PdbFiles" Version="2.8.3" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0' OR '$(TargetFramework)' == 'netstandard2.1'">
-    <Compile Remove="Internal\SocketAwaitable.cs" />
-    <Compile Remove="Internal\SocketExtensions.cs" />
-    <Compile Remove="Internal\SocketTpktReader.desktop.cs" />
-
-    <None Include="Internal\SocketAwaitable.cs" />
-    <None Include="Internal\SocketExtensions.cs" />
-    <None Include="Internal\SocketTpktReader.desktop.cs" />
-  </ItemGroup>
-    
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0' AND '$(TargetFramework)' != 'netstandard2.1'">
-    <PackageReference Include="System.Memory" Version="4.5.4" />
-      
-    <Compile Remove="Internal\SocketTpktReader.netcore.cs" />
-    <None   Include="Internal\SocketTpktReader.netcore.cs" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />    
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">

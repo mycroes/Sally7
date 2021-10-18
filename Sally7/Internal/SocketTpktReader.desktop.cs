@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
+
+using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -64,3 +66,5 @@ namespace Sally7.Internal
         }
     }
 }
+
+#endif
