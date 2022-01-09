@@ -1,7 +1,8 @@
-﻿#if NETSTANDARD2_1 || NET5_0_OR_GREATER
+#if NETSTANDARD2_1 || NET5_0_OR_GREATER
 
 using System;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sally7.Internal
@@ -10,7 +11,7 @@ namespace Sally7.Internal
     {
         public SocketTpktReader(Socket socket) => this.socket = socket;
 
-        public async ValueTask<int> ReadAsync(Memory<byte> message)
+        public async ValueTask<int> ReadAsync(Memory<byte> message, CancellationToken cancellationToken)
         {
             int count = 0;
             Memory<byte> buffer = message.Slice(0, TpktSize);
@@ -21,7 +22,7 @@ namespace Sally7.Internal
                     buffer = message[count..TpktSize];
                 }
 
-                int read = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
+                int read = await socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
 
                 if (read <= 0)
                 {
@@ -37,7 +38,7 @@ namespace Sally7.Internal
             while (count < receivedLength)
             {
                 buffer = message[count..receivedLength];
-                int read = await socket.ReceiveAsync(buffer, SocketFlags.None).ConfigureAwait(false);
+                int read = await socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
 
                 if (read <= 0)
                 {

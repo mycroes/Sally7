@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
@@ -77,9 +77,9 @@ namespace Sally7.RequestExecutor
         }
 
         /// <inheritdoc/>
-        public async ValueTask<Memory<byte>> PerformRequest(ReadOnlyMemory<byte> request, Memory<byte> response)
+        public async ValueTask<Memory<byte>> PerformRequest(ReadOnlyMemory<byte> request, Memory<byte> response, CancellationToken cancellationToken)
         {
-            int jobId = await jobPool.RentJobIdAsync().ConfigureAwait(false);
+            int jobId = await jobPool.RentJobIdAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 jobPool.SetBufferForRequest(jobId, response);
@@ -89,11 +89,11 @@ namespace Sally7.RequestExecutor
                     request.CopyTo(mo.Memory);
                     mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
-                    _ = await sendSignal.WaitAsync().ConfigureAwait(false);
+                    _ = await sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
-                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None).ConfigureAwait(false);
+                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
                         Debug.Assert(written == request.Length);
 #else
                         if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
@@ -121,10 +121,10 @@ namespace Sally7.RequestExecutor
 
                 using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
                 {
-                    _ = await receiveSignal.WaitAsync().ConfigureAwait(false);
+                    _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
-                        length = await reader.ReadAsync(mo.Memory).ConfigureAwait(false);
+                        length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
                     }
                     finally
                     {
@@ -181,7 +181,7 @@ namespace Sally7.RequestExecutor
 
             public void Dispose() => jobIdPool.Writer.Complete();
 
-            public ValueTask<int> RentJobIdAsync() => jobIdPool.Reader.ReadAsync();
+            public ValueTask<int> RentJobIdAsync(CancellationToken cancellationToken) => jobIdPool.Reader.ReadAsync(cancellationToken);
 
             public void ReturnJobId(int jobId)
             {
@@ -212,7 +212,7 @@ namespace Sally7.RequestExecutor
 
             public bool TryInit() => channel.Writer.TryWrite(0);
 
-            public ValueTask<int> WaitAsync() => channel.Reader.ReadAsync();
+            public ValueTask<int> WaitAsync(CancellationToken cancellationToken) => channel.Reader.ReadAsync(cancellationToken);
 
             public bool TryRelease() => channel.Writer.TryWrite(0);
 

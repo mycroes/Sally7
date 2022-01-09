@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Sally7.Infrastructure;
 using Sally7.Internal;
@@ -101,19 +102,31 @@ namespace Sally7
             }
         }
 
-        public async Task OpenAsync()
+        public async Task OpenAsync(CancellationToken cancellationToken = default)
         {
+#if NET5_0_OR_GREATER
+            await TcpClient.ConnectAsync(host, IsoOverTcpPort, cancellationToken).ConfigureAwait(false);
+#else
             await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+#endif
             var stream = TcpClient.GetStream();
 
             var buffer = ArrayPool<byte>.Shared.Rent(100);
 
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap), cancellationToken).ConfigureAwait(false);
+#else
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
-            var length = await ReadTpktAsync(stream, buffer).ConfigureAwait(false);
+#endif
+            var length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
             S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), cancellationToken).ConfigureAwait(false);
+#else
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
-            length = await ReadTpktAsync(stream, buffer).ConfigureAwait(false);
+#endif
+            length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
             S7ConnectionHelpers.ParseCommunicationSetup(buffer.AsSpan().Slice(0, length), out var pduSize, out var maxRequests);
 
             Parameters = new S7ConnectionParameters(pduSize, maxRequests);
@@ -126,7 +139,7 @@ namespace Sally7
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        public async Task ReadAsync(params IDataItem[] dataItems)
+        public async Task ReadAsync(CancellationToken cancellationToken = default, params IDataItem[] dataItems)
         {
             IRequestExecutor executor = GetExecutorOrThrow();
 
@@ -136,12 +149,12 @@ namespace Sally7
 
             // The response will only be written after the request has been sent. At that point we no longer
             // care about the request contents, so we use a single buffer only.
-            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
+            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, cancellationToken).ConfigureAwait(false);
 
             S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
         }
 
-        public async Task WriteAsync(params IDataItem[] dataItems)
+        public async Task WriteAsync(CancellationToken cancellationToken = default, params IDataItem[] dataItems)
         {
             IRequestExecutor executor = GetExecutorOrThrow();
 
@@ -151,7 +164,7 @@ namespace Sally7
 
             // The response will only be written after the request has been sent. At that point we no longer
             // care about the request contents, so we use a single buffer only.
-            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem).ConfigureAwait(false);
+            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, cancellationToken).ConfigureAwait(false);
 
             S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems);
         }
@@ -168,9 +181,13 @@ namespace Sally7
             return requestExecutor;
         }
 
-        private static async Task<int> ReadTpktAsync(NetworkStream stream, byte[] buffer)
+        private static async Task<int> ReadTpktAsync(NetworkStream stream, byte[] buffer, CancellationToken cancellationToken)
         {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            var len = await stream.ReadAsync(buffer, 0, 4, cancellationToken).ConfigureAwait(false);
+#else
             var len = await stream.ReadAsync(buffer, 0, 4).ConfigureAwait(false);
+#endif
             if (len < 4)
             {
                 Throw(len);
@@ -180,7 +197,12 @@ namespace Sally7
             var tpkt = buffer.AsSpan().Struct<Tpkt>(0);
             tpkt.Assert();
             var msgLen = tpkt.MessageLength();
+
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            len = await stream.ReadAsync(buffer, 4, msgLen, cancellationToken).ConfigureAwait(false);
+#else
             len = await stream.ReadAsync(buffer, 4, msgLen).ConfigureAwait(false);
+#endif
             if (len != msgLen)
             {
                 TpktException.ThrowReadUnexptectedByteCount(msgLen, len);
