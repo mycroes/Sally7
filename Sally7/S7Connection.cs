@@ -107,6 +107,7 @@ namespace Sally7
 #if NET5_0_OR_GREATER
             await TcpClient.ConnectAsync(host, IsoOverTcpPort, cancellationToken).ConfigureAwait(false);
 #else
+            cancellationToken.ThrowIfCancellationRequested();
             await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
 #endif
             var stream = TcpClient.GetStream();
@@ -116,6 +117,7 @@ namespace Sally7
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap), cancellationToken).ConfigureAwait(false);
 #else
+            cancellationToken.ThrowIfCancellationRequested();
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
 #endif
             var length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
@@ -124,6 +126,7 @@ namespace Sally7
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), cancellationToken).ConfigureAwait(false);
 #else
+            cancellationToken.ThrowIfCancellationRequested();
             await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
 #endif
             length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
@@ -188,6 +191,7 @@ namespace Sally7
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             var len = await stream.ReadAsync(buffer, 0, 4, cancellationToken).ConfigureAwait(false);
 #else
+            cancellationToken.ThrowIfCancellationRequested();
             var len = await stream.ReadAsync(buffer, 0, 4).ConfigureAwait(false);
 #endif
             if (len < 4)
@@ -203,6 +207,7 @@ namespace Sally7
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             len = await stream.ReadAsync(buffer, 4, msgLen, cancellationToken).ConfigureAwait(false);
 #else
+            cancellationToken.ThrowIfCancellationRequested();
             len = await stream.ReadAsync(buffer, 4, msgLen).ConfigureAwait(false);
 #endif
             if (len != msgLen)
