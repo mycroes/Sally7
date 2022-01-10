@@ -139,7 +139,8 @@ namespace Sally7
             ArrayPool<byte>.Shared.Return(buffer);
         }
 
-        public async Task ReadAsync(CancellationToken cancellationToken = default, params IDataItem[] dataItems)
+        public Task ReadAsync(params IDataItem[] dataItems) => ReadAsync(dataItems, CancellationToken.None);
+        public async Task ReadAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
             IRequestExecutor executor = GetExecutorOrThrow();
 
@@ -154,7 +155,8 @@ namespace Sally7
             S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
         }
 
-        public async Task WriteAsync(CancellationToken cancellationToken = default, params IDataItem[] dataItems)
+        public Task WriteAsync(params IDataItem[] dataItems) => WriteAsync(dataItems, CancellationToken.None);
+        public async Task WriteAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
             IRequestExecutor executor = GetExecutorOrThrow();
 
