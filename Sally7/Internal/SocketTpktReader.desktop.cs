@@ -1,8 +1,9 @@
-﻿#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
+#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
 
 using System;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Sally7.Internal
@@ -19,7 +20,7 @@ namespace Sally7.Internal
             awaitable = new SocketAwaitable(args);
         }
 
-        public async ValueTask<int> ReadAsync(Memory<byte> message)
+        public async ValueTask<int> ReadAsync(Memory<byte> message, CancellationToken cancellationToken)
         {
             if (!MemoryMarshal.TryGetArray<byte>(message, out var segment))
             {
@@ -36,6 +37,7 @@ namespace Sally7.Internal
                     args.SetBuffer(segment.Offset + count, TpktSize - count);
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
                 await socket.ReceiveAsync(awaitable);
 
                 if (args.BytesTransferred <= 0)
@@ -51,6 +53,7 @@ namespace Sally7.Internal
 
             while (count < receivedLength)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 args.SetBuffer(segment.Offset + count, receivedLength - count);
                 await socket.ReceiveAsync(awaitable);
 
