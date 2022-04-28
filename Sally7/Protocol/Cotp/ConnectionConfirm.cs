@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Sally7.Protocol.Cotp
@@ -14,12 +13,19 @@ namespace Sally7.Protocol.Cotp
         public BigEndianShort SourceReference;
         public byte ClassAndOption;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Assert()
         {
-            if (ConnectionConfirmAndCredit != 0b1101_0000) throw new Exception("Spec violation, Connection Confirm doesn't match.");
+            if (ConnectionConfirmAndCredit != 0b1101_0000)
+            {
+                CotpProtocolException.ThrowSpecConnectionConfirmDoesNotMatch();
+            }
             //if (DestinationReference != 46) throw new Exception("Destination reference mismatch.");
             //if (SourceReference != 0) throw new Exception("Source reference mismatch.");
-            if (ClassAndOption != 0) throw new Exception("Spec violation: Only class 0 is supported for TPKT over TCP.");
+            if (ClassAndOption != 0)
+            {
+                CotpProtocolException.ThrowOnlyClass0SupportedForTPKT();
+            }
         }
     }
 }

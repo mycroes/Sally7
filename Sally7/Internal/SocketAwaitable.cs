@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
+
+using System;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -54,7 +56,11 @@ namespace Sally7.Internal
         public void GetResult()
         {
             if (EventArgs.SocketError != SocketError.Success)
-                throw new SocketException((int) EventArgs.SocketError);
+            {
+                Sally7Exception.ThrowSocketException(EventArgs.SocketError);
+            }
         }
     }
 }
+
+#endif

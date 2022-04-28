@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Sally7.Protocol.S7.Messages
@@ -9,10 +9,18 @@ namespace Sally7.Protocol.S7.Messages
         public FunctionCode FunctionCode;
         public byte ItemCount;
 
-        public readonly void Assert(in byte count)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public readonly void Assert(byte count)
         {
-            if (FunctionCode != FunctionCode.Read) throw new Exception($"Expected FunctionCode {FunctionCode.Read}, received {FunctionCode}.");
-            if (ItemCount != count) throw new Exception($"Expected ItemCount {count}, received {ItemCount}.");
+            if (FunctionCode != FunctionCode.Read)
+            {
+                S7ProtocolException.ThrowUnexpectedFunctionCode(FunctionCode.Read, FunctionCode);
+            }
+
+            if (ItemCount != count)
+            {
+                S7ProtocolException.ThrowUnexpectedItemCount(count, ItemCount);
+            }
         }
     }
 }

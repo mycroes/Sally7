@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections;
+using System.Buffers.Binary;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -9,65 +10,52 @@ namespace Sally7.ValueConversion
     {
         public static Delegate GetConverter<TValue>()
         {
-            var type = typeof(TValue);
-
-            if (type.IsPrimitive || type.IsEnum)
+            if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
             {
-                switch (Unsafe.SizeOf<TValue>())
+                return Unsafe.SizeOf<TValue>() switch
                 {
-                    case sizeof(long):
-                        return new ConvertToS7<long>(ConvertFromLong);
-                    case sizeof(int):
-                        return new ConvertToS7<int>(ConvertFromInt);
-                    case sizeof(short):
-                        return new ConvertToS7<short>(ConvertFromShort);
-                    case sizeof(byte):
-                        return new ConvertToS7<byte>(ConvertFromByte);
-                    default:
-                        throw new NotImplementedException();
-                }
+                    sizeof(long) => new ConvertToS7<long>(ConvertFromLong),
+                    sizeof(int) => new ConvertToS7<int>(ConvertFromInt),
+                    sizeof(short) => new ConvertToS7<short>(ConvertFromShort),
+                    sizeof(byte) => new ConvertToS7<byte>(ConvertFromByte),
+                    _ => throw new NotImplementedException(),
+                };
             }
 
-            if (type == typeof(bool[]))
+            if (typeof(TValue) == typeof(bool[]))
                 return new ConvertToS7<bool[]>(ConvertFromBoolArray);
 
-            if (type.IsArray)
+            if (typeof(TValue).IsArray)
             {
-                var elementType = type.GetElementType() ??
+                var elementType = typeof(TValue).GetElementType() ??
                     throw new Exception($"Type {typeof(TValue)} doesn't have an ElementType.");
 
                 if (elementType.IsPrimitive || elementType.IsEnum)
                 {
-                    switch (ConversionHelper.SizeOf(elementType))
+                    return ConversionHelper.SizeOf(elementType) switch
                     {
-                        case sizeof(long):
-                            return new ConvertToS7<long[]>(ConvertFromLongArray);
-                        case sizeof(int):
-                            return new ConvertToS7<int[]>(ConvertFromIntArray);
-                        case sizeof(short):
-                            return new ConvertToS7<short[]>(ConvertFromShortArray);
-                        case sizeof(byte):
-                            return new ConvertToS7<byte[]>(ConvertFromByteArray);
-                        default:
-                            throw new NotImplementedException();
-                    }
+                        sizeof(long) => new ConvertToS7<long[]>(ConvertFromLongArray),
+                        sizeof(int) => new ConvertToS7<int[]>(ConvertFromIntArray),
+                        sizeof(short) => new ConvertToS7<short[]>(ConvertFromShortArray),
+                        sizeof(byte) => new ConvertToS7<byte[]>(ConvertFromByteArray),
+                        _ => throw new NotImplementedException(),
+                    };
                 }
             }
 
-            if (type == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
+            if (typeof(TValue) == typeof(string)) return new ConvertToS7<string>(ConvertFromString);
 
             throw new NotImplementedException();
         }
 
-        private static int ConvertFromLong(in long value, in int length, in Span<byte> output)
+        private static int ConvertFromLong(long value, int length, Span<byte> output)
         {
-            ConvertFromInt((int) value >> 32, 1, output);
-            ConvertFromInt((int) value, 1, output.Slice(sizeof(int)));
+            BinaryPrimitives.WriteInt64BigEndian(output, value);
 
             return sizeof(long);
         }
 
-        private static int ConvertFromLongArray(in long[]? value, in int length, in Span<byte> output)
+        private static int ConvertFromLongArray(long[]? value, int length, Span<byte> output)
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
@@ -77,17 +65,14 @@ namespace Sally7.ValueConversion
             return value.Length * sizeof(long);
         }
 
-        private static int ConvertFromInt(in int value, in int length, in Span<byte> output)
+        private static int ConvertFromInt(int value, int length, Span<byte> output)
         {
-            output[0] = (byte) (value >> 24);
-            output[1] = (byte) (value >> 16);
-            output[2] = (byte) (value >> 8);
-            output[3] = (byte) value;
+            BinaryPrimitives.WriteInt32BigEndian(output, value);
 
             return sizeof(int);
         }
 
-        private static int ConvertFromIntArray(in int[]? value, in int length, in Span<byte> output)
+        private static int ConvertFromIntArray(int[]? value, int length, Span<byte> output)
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
@@ -97,15 +82,14 @@ namespace Sally7.ValueConversion
             return value.Length * sizeof(int);
         }
 
-        private static int ConvertFromShort(in short value, in int length, in Span<byte> output)
+        private static int ConvertFromShort(short value, int length, Span<byte> output)
         {
-            output[0] = (byte) (value >> 8);
-            output[1] = (byte) value;
+            BinaryPrimitives.WriteInt16BigEndian(output, value);
 
             return sizeof(short);
         }
 
-        private static int ConvertFromShortArray(in short[]? value, in int length, in Span<byte> output)
+        private static int ConvertFromShortArray(short[]? value, int length, Span<byte> output)
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
@@ -115,14 +99,14 @@ namespace Sally7.ValueConversion
             return value.Length * sizeof(short);
         }
 
-        private static int ConvertFromByte(in byte value, in int length, in Span<byte> output)
+        private static int ConvertFromByte(byte value, int length, Span<byte> output)
         {
             output[0] = value;
 
             return sizeof(byte);
         }
 
-        private static int ConvertFromByteArray(in byte[]? value, in int length, in Span<byte> output)
+        private static int ConvertFromByteArray(byte[]? value, int length, Span<byte> output)
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
@@ -131,37 +115,79 @@ namespace Sally7.ValueConversion
             return value.Length;
         }
 
-        private static int ConvertFromBoolArray(in bool[]? value, in int length, in Span<byte> output)
+        private static int ConvertFromBoolArray(bool[]? value, int length, Span<byte> output)
         {
-            if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
+            if (value is null)
+            {
+                Throw();
+                [DoesNotReturn]
+                static void Throw() => throw new ArgumentNullException(nameof(value), "Value can't be null");
+            }
 
-            var bitArray = new BitArray(value);
-            var byteArray = new byte[(length + 7) / 8];
-            bitArray.CopyTo(byteArray, 0);
-            byteArray.CopyTo(output);
+            length = (length + 7) >> 3;     // (length + 7) / 8
 
-            return byteArray.Length;
+            int outputIdx = 0;
+            int bitIdx = 0;
+
+            foreach (bool b in value)
+            {
+                if (b)
+                {
+                    output[outputIdx] |= (byte)(1 << bitIdx);
+                }
+                else
+                {
+                    output[outputIdx] &= (byte)~(1 << bitIdx);
+                }
+
+                bitIdx++;
+
+                if ((bitIdx & 7) == 0)
+                {
+                    outputIdx++;
+                    bitIdx = 0;
+                }
+            }
+
+            return length;
         }
 
-        private static int ConvertFromString(in string? value, in int length, in Span<byte> output)
+        private static int ConvertFromString(string? value, int length, Span<byte> output)
         {
             if (value == null)
             {
-                output[0] = (byte) length;
                 output[1] = 0;
+                output[0] = (byte) length;
 
                 return 2;
             }
 
+#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
+            var maxByteCount = Encoding.ASCII.GetMaxByteCount(value.Length);
+            Span<byte> span = maxByteCount <= 256
+                ? stackalloc byte[256]
+                : new byte[maxByteCount];
+
+            var written = Encoding.ASCII.GetBytes(value, span);
+            written = Math.Min(written, length);
+            span = span.Slice(0, written);
+
+            output[1] = (byte) span.Length;
+            output[0] = (byte) length;
+            span.CopyTo(output.Slice(2));
+
+            return span.Length + 2;
+#else
             var bytes = Encoding.ASCII.GetBytes(value);
             var span = bytes.AsSpan();
             if (span.Length > length) span = span.Slice(0, length);
 
-            output[0] = (byte) length;
             output[1] = (byte) span.Length;
+            output[0] = (byte) length;
             span.CopyTo(output.Slice(2));
 
             return span.Length + 2;
+#endif
         }
     }
 }
