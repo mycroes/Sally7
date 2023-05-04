@@ -123,6 +123,7 @@ namespace Sally7
 
             try
             {
+                using var closeOnCancel = linkedToken.Register(_ => TcpClient.Close(), null);
 #if NET5_0_OR_GREATER
                 await TcpClient.ConnectAsync(host, IsoOverTcpPort, linkedToken).ConfigureAwait(false);
 #else
@@ -171,8 +172,11 @@ namespace Sally7
                 }
 
             }
-            catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
+            catch (Exception) when (linkedToken.IsCancellationRequested)
             {
+                // The exception handling is quite generic, but exceptions thrown differ across target frameworks.
+                // (See https://stackoverflow.com/a/66656805/1085457)
+                // This is probably not something to worry about, since apparently cancellation was requested anyway.
                 // Ensure user cancel gets an exception with their own token
                 cancellationToken.ThrowIfCancellationRequested();
 
