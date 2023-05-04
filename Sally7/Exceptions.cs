@@ -19,6 +19,8 @@ namespace Sally7
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
+        internal static void ThrowTimeoutException() => throw new TimeoutException();
+
         internal static void ThrowSocketException(SocketError socketError)
             => throw new SocketException((int)socketError);
 

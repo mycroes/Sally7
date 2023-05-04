@@ -14,6 +14,12 @@ namespace Sally7
 {
     public sealed class S7Connection : IDisposable
     {
+        /// <summary>
+        /// The default timeout, in milliseconds, for performing requests.
+        /// Set the actual value using <see cref="RequestTimeout"/>.
+        /// </summary>
+        public const int DefaultRequestTimeout = 5000;
+
         private const int IsoOverTcpPort = 102;
 
         private readonly string host;
@@ -86,6 +92,14 @@ namespace Sally7
             set => TcpClient.SendTimeout = value;
         }
 
+        /// <summary>
+        /// Gets or sets the timeout, in milliseconds, for performing requests.
+        /// </summary>
+        /// <remarks>
+        /// The default value is <see cref="DefaultRequestTimeout"/>.
+        /// </remarks>
+        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
+
         public void Close()
         {
             TcpClient.Close();
@@ -104,58 +118,97 @@ namespace Sally7
 
         public async Task OpenAsync(CancellationToken cancellationToken = default)
         {
+            using var linkedCts = CreateRequestTimeoutCancellationTokenSource(cancellationToken);
+            var linkedToken = linkedCts.Token;
+
+            try
+            {
 #if NET5_0_OR_GREATER
-            await TcpClient.ConnectAsync(host, IsoOverTcpPort, cancellationToken).ConfigureAwait(false);
+                await TcpClient.ConnectAsync(host, IsoOverTcpPort, linkedToken).ConfigureAwait(false);
 #else
-            cancellationToken.ThrowIfCancellationRequested();
-            await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+                linkedToken.ThrowIfCancellationRequested();
+                await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
 #endif
-            var stream = TcpClient.GetStream();
 
-            var buffer = ArrayPool<byte>.Shared.Rent(100);
+                var stream = TcpClient.GetStream();
+
+                var buffer = ArrayPool<byte>.Shared.Rent(100);
+                try
+                {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    await stream.WriteAsync(buffer, 0,
+                            S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap), linkedToken)
+                        .ConfigureAwait(false);
+#else
+                    linkedToken.ThrowIfCancellationRequested();
+                    await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
+#endif
+                    var length = await ReadTpktAsync(stream, buffer, linkedToken).ConfigureAwait(false);
+                    S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap), cancellationToken).ConfigureAwait(false);
+                    await stream
+                        .WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), linkedToken)
+                        .ConfigureAwait(false);
 #else
-            cancellationToken.ThrowIfCancellationRequested();
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
+                    linkedToken.ThrowIfCancellationRequested();
+                    await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
 #endif
-            var length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
-            S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
+                    length = await ReadTpktAsync(stream, buffer, linkedToken).ConfigureAwait(false);
+                    S7ConnectionHelpers.ParseCommunicationSetup(buffer.AsSpan().Slice(0, length), out var pduSize,
+                        out var maxRequests);
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), cancellationToken).ConfigureAwait(false);
-#else
-            cancellationToken.ThrowIfCancellationRequested();
-            await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
-#endif
-            length = await ReadTpktAsync(stream, buffer, cancellationToken).ConfigureAwait(false);
-            S7ConnectionHelpers.ParseCommunicationSetup(buffer.AsSpan().Slice(0, length), out var pduSize, out var maxRequests);
+                    Parameters = new S7ConnectionParameters(pduSize, maxRequests);
+                    bufferSize = Parameters.GetRequiredBufferSize();
 
-            Parameters = new S7ConnectionParameters(pduSize, maxRequests);
-            bufferSize = Parameters.GetRequiredBufferSize();
+                    memoryPool ??= new Sally7MemoryPool(bufferSize);
 
-            memoryPool ??= new Sally7MemoryPool(bufferSize);
+                    requestExecutor = executorFactory.Invoke(this);
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buffer);
+                }
 
-            requestExecutor = executorFactory.Invoke(this);
+            }
+            catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
+            {
+                // Ensure user cancel gets an exception with their own token
+                cancellationToken.ThrowIfCancellationRequested();
 
-            ArrayPool<byte>.Shared.Return(buffer);
+                // Not user requested, request timed out.
+                Sally7Exception.ThrowTimeoutException();
+            }
         }
 
         public Task ReadAsync(params IDataItem[] dataItems) => ReadAsync(dataItems, CancellationToken.None);
         public async Task ReadAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
+            using var linkedCts = CreateRequestTimeoutCancellationTokenSource(cancellationToken);
+            var linkedToken = linkedCts.Token;
+
             IRequestExecutor executor = GetExecutorOrThrow();
 
             using IMemoryOwner<byte> mo = memoryPool!.Rent(bufferSize);
             Memory<byte> mem = mo.Memory;
             int length = S7ConnectionHelpers.BuildReadRequest(mem.Span, dataItems);
 
-            // The response will only be written after the request has been sent. At that point we no longer
-            // care about the request contents, so we use a single buffer only.
-            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                // The response will only be written after the request has been sent. At that point we no longer
+                // care about the request contents, so we use a single buffer only.
+                Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, linkedToken).ConfigureAwait(false);
 
-            S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
+                S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
+            }
+            catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
+            {
+                // Ensure user cancel gets an exception with their own token
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Not user requested, request timed out.
+                Sally7Exception.ThrowTimeoutException();
+            }
         }
 
         public Task WriteAsync(params IDataItem[] dataItems) => WriteAsync(dataItems, CancellationToken.None);
@@ -167,11 +220,26 @@ namespace Sally7
             Memory<byte> mem = mo.Memory;
             int length = S7ConnectionHelpers.BuildWriteRequest(mem.Span, dataItems);
 
-            // The response will only be written after the request has been sent. At that point we no longer
-            // care about the request contents, so we use a single buffer only.
-            Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, cancellationToken).ConfigureAwait(false);
+            using var linkedCts = CreateRequestTimeoutCancellationTokenSource(cancellationToken);
+            var linkedToken = linkedCts.Token;
 
-            S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems);
+            try
+            {
+                // The response will only be written after the request has been sent. At that point we no longer
+                // care about the request contents, so we use a single buffer only.
+                Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, linkedToken)
+                    .ConfigureAwait(false);
+
+                S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems);
+            }
+            catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
+            {
+                // Ensure user cancel gets an exception with their own token
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Not user requested, request timed out.
+                Sally7Exception.ThrowTimeoutException();
+            }
         }
 
         private IRequestExecutor GetExecutorOrThrow()
@@ -184,6 +252,17 @@ namespace Sally7
             }
 
             return requestExecutor;
+        }
+
+        private CancellationTokenSource CreateRequestTimeoutCancellationTokenSource(CancellationToken userToken)
+        {
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(userToken);
+            if (RequestTimeout > 0)
+            {
+                linkedCts.CancelAfter(RequestTimeout);
+            }
+
+            return linkedCts;
         }
 
         private static async Task<int> ReadTpktAsync(NetworkStream stream, byte[] buffer, CancellationToken cancellationToken)
