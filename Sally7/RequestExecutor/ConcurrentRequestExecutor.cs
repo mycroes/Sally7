@@ -124,7 +124,21 @@ namespace Sally7.RequestExecutor
                     _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
-                        length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
+                        // If we bail while reading we break the send-one-receive-one flow, so we might as well close right away.
+                        // There is minimal risk of closing connections while data was actually received but handling here
+                        // avoids registering on the cancellationToken on every socket call.
+                        using var closeOnCancel = cancellationToken.Register(socket.Close);
+                        try
+                        {
+                            length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
+                        }
+                        catch (Exception) when (cancellationToken.IsCancellationRequested)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // Should never happen, but required to satisfy compiler analysis of length initialization.
+                            throw new OperationCanceledException(cancellationToken);
+                        }
                     }
                     finally
                     {
