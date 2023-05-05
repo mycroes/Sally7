@@ -127,7 +127,7 @@ namespace Sally7.RequestExecutor
                         // If we bail while reading we break the send-one-receive-one flow, so we might as well close right away.
                         // There is minimal risk of closing connections while data was actually received but handling here
                         // avoids registering on the cancellationToken on every socket call.
-                        using var closeOnCancel = cancellationToken.Register(socket.Close);
+                        using var closeOnCancel = cancellationToken.MaybeUnsafeRegister(socket.Close);
                         try
                         {
                             length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
