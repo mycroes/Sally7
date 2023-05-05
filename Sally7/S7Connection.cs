@@ -123,7 +123,11 @@ namespace Sally7
 
             try
             {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                await
+#endif
                 using var closeOnCancel = linkedToken.MaybeUnsafeRegister(TcpClient.Close);
+
 #if NET5_0_OR_GREATER
                 await TcpClient.ConnectAsync(host, IsoOverTcpPort, linkedToken).ConfigureAwait(false);
 #else
