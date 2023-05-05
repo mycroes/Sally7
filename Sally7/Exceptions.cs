@@ -212,13 +212,5 @@ namespace System.Diagnostics.CodeAnalysis
     public sealed class DoesNotReturnAttribute : Attribute
     {
     }
-
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, Inherited = false, AllowMultiple = true)]
-    public sealed class MemberNotNullAttribute : Attribute
-    {
-        public MemberNotNullAttribute(string member) : this(new[] { member }) { }
-        public MemberNotNullAttribute(params string[] members) => Members = members;
-        public string[] Members { get; }
-    }
 }
 #endif
