@@ -15,10 +15,10 @@ namespace Sally7
     public sealed class S7Connection : IDisposable
     {
         /// <summary>
-        /// The default timeout, in milliseconds, for performing requests.
+        /// The default timeout (5 seconds) for performing requests.
         /// Set the actual value using <see cref="RequestTimeout"/>.
         /// </summary>
-        public const int DefaultRequestTimeout = 5000;
+        public static TimeSpan DefaultRequestTimeout => TimeSpan.FromSeconds(5);
 
         private const int IsoOverTcpPort = 102;
 
@@ -37,6 +37,32 @@ namespace Sally7
         public TcpClient TcpClient { get; } = new() {NoDelay = true};
 
         public IS7ConnectionParameters? Parameters { get; private set; }
+
+        private TimeSpan requestTimeout = DefaultRequestTimeout;
+
+        /// <summary>
+        /// Gets or sets the timeout for performing requests.
+        /// </summary>
+        /// <remarks>
+        /// The default value is <see cref="DefaultRequestTimeout"/>.
+        /// </remarks>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// <paramref name="value"/>.TotalMilliseconds is less than -1 or greater than maximum allowed timer duration.
+        /// </exception>
+        public TimeSpan RequestTimeout
+        {
+            get => requestTimeout;
+            set
+            {
+                var totalMilliseconds = (long)value.TotalMilliseconds;
+                if (totalMilliseconds is < -1 or > int.MaxValue)
+                {
+                    Sally7Exception.ThrowTimeoutIsInvalid(value);
+                }
+
+                requestTimeout = value;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="S7Connection"/> class with a specified host, source TSAP
@@ -73,14 +99,6 @@ namespace Sally7
             destinationTsap, default)
         {
         }
-
-        /// <summary>
-        /// Gets or sets the timeout, in milliseconds, for performing requests.
-        /// </summary>
-        /// <remarks>
-        /// The default value is <see cref="DefaultRequestTimeout"/>.
-        /// </remarks>
-        public int RequestTimeout { get; set; } = DefaultRequestTimeout;
 
         public void Close()
         {
@@ -240,10 +258,7 @@ namespace Sally7
         private CancellationTokenSource CreateRequestTimeoutCancellationTokenSource(CancellationToken userToken)
         {
             var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(userToken);
-            if (RequestTimeout > 0)
-            {
-                linkedCts.CancelAfter(RequestTimeout);
-            }
+            linkedCts.CancelAfter(RequestTimeout);
 
             return linkedCts;
         }

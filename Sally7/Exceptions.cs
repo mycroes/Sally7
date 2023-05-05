@@ -19,6 +19,10 @@ namespace Sally7
           System.Runtime.Serialization.SerializationInfo info,
           System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
+        internal static void ThrowTimeoutIsInvalid(TimeSpan value) =>
+            throw new ArgumentOutOfRangeException(nameof(value),
+                $"The timeout {value.TotalMilliseconds}ms is less than -1 or greater than Int32.MaxValue.");
+
         internal static void ThrowTimeoutException() => throw new TimeoutException();
 
         internal static void ThrowSocketException(SocketError socketError)
