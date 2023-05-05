@@ -75,24 +75,6 @@ namespace Sally7
         }
 
         /// <summary>
-        /// Gets or sets the ReceiveTimeout of the underlying <see cref="TcpClient"/>.
-        /// </summary>
-        public int ReceiveTimeout
-        {
-            get => TcpClient.ReceiveTimeout;
-            set => TcpClient.ReceiveTimeout = value;
-        }
-
-        /// <summary>
-        /// Gets or sets the SendTimeout of the underlying <see cref="TcpClient"/>.
-        /// </summary>
-        public int SendTimeout
-        {
-            get => TcpClient.SendTimeout;
-            set => TcpClient.SendTimeout = value;
-        }
-
-        /// <summary>
         /// Gets or sets the timeout, in milliseconds, for performing requests.
         /// </summary>
         /// <remarks>
