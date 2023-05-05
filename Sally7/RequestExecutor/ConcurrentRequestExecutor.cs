@@ -166,9 +166,12 @@ namespace Sally7.RequestExecutor
 
                     if ((uint)(replyJobId - 1) >= (uint)maxRequests)
                     {
+                        // todo: This is breaking, because we return the current jobId to the pool
+                        // so when that gets answered it might complete an incorrect request.
                         S7CommunicationException.ThrowInvalidJobID(replyJobId, message);
                     }
 
+                    // todo: There's no state validation on the request, potentially this is not rented out at all.
                     rec = jobPool.GetRequest(replyJobId);
 
                     message.CopyTo(rec.Buffer);
