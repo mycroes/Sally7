@@ -140,25 +140,18 @@ namespace Sally7
                 var buffer = ArrayPool<byte>.Shared.Rent(100);
                 try
                 {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    await stream.WriteAsync(buffer, 0,
-                            S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap), linkedToken)
+                    await stream.FrameworkSpecificWriteAsync(buffer, 0,
+                            S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap),
+                            cancellationToken)
                         .ConfigureAwait(false);
-#else
-                    linkedToken.ThrowIfCancellationRequested();
-                    await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap)).ConfigureAwait(false);
-#endif
+
                     var length = await ReadTpktAsync(stream, buffer, linkedToken).ConfigureAwait(false);
                     S7ConnectionHelpers.ParseConnectionConfirm(buffer.AsSpan().Slice(0, length));
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     await stream
-                        .WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), linkedToken)
+                        .FrameworkSpecificWriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer), linkedToken)
                         .ConfigureAwait(false);
-#else
-                    linkedToken.ThrowIfCancellationRequested();
-                    await stream.WriteAsync(buffer, 0, S7ConnectionHelpers.BuildCommunicationSetup(buffer)).ConfigureAwait(false);
-#endif
+
                     length = await ReadTpktAsync(stream, buffer, linkedToken).ConfigureAwait(false);
                     S7ConnectionHelpers.ParseCommunicationSetup(buffer.AsSpan().Slice(0, length), out var pduSize,
                         out var maxRequests);
@@ -275,12 +268,7 @@ namespace Sally7
 
         private static async Task<int> ReadTpktAsync(NetworkStream stream, byte[] buffer, CancellationToken cancellationToken)
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var len = await stream.ReadAsync(buffer, 0, 4, cancellationToken).ConfigureAwait(false);
-#else
-            cancellationToken.ThrowIfCancellationRequested();
-            var len = await stream.ReadAsync(buffer, 0, 4).ConfigureAwait(false);
-#endif
+            var len = await stream.FrameworkSpecificReadAsync(buffer, 0, 4, cancellationToken).ConfigureAwait(false);
             if (len < 4)
             {
                 Throw(len);
@@ -291,12 +279,7 @@ namespace Sally7
             tpkt.Assert();
             var msgLen = tpkt.MessageLength();
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            len = await stream.ReadAsync(buffer, 4, msgLen, cancellationToken).ConfigureAwait(false);
-#else
-            cancellationToken.ThrowIfCancellationRequested();
-            len = await stream.ReadAsync(buffer, 4, msgLen).ConfigureAwait(false);
-#endif
+            len = await stream.FrameworkSpecificReadAsync(buffer, 4, msgLen, cancellationToken).ConfigureAwait(false);
             if (len != msgLen)
             {
                 TpktException.ThrowReadUnexptectedByteCount(msgLen, len);
