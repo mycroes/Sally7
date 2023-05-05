@@ -92,6 +92,14 @@ namespace Sally7.RequestExecutor
                     _ = await sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                     try
                     {
+                        // If we bail while sending the PLC might still respond to the data that was sent.
+                        // This both breaks the send-one-receive-one flow as well as it might end up
+                        // completing a new job that reused the ID.
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        await
+#endif
+                        using var closeOnCancel = cancellationToken.MaybeUnsafeRegister(socket.Close);
+
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
                         int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
                         Debug.Assert(written == request.Length);
