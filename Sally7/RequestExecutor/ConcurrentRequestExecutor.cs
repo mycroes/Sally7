@@ -132,35 +132,38 @@ namespace Sally7.RequestExecutor
 
                 using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
                 {
+                    _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+
                     // If we bail while reading we break the send-one-receive-one flow, so we might as well close right away.
                     // There is minimal risk of closing connections while data was actually received but handling here
                     // avoids registering on the cancellationToken on every socket call.
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    await
-#endif
-                    using (cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket))
+                    var closeOnCancel =
+                        cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
+                    try
                     {
-                        _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                         try
                         {
-                            try
-                            {
-                                length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
-                            }
-                            catch (Exception) when (cancellationToken.IsCancellationRequested)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                // Should never happen, but required to satisfy compiler analysis of length initialization.
-                                throw new OperationCanceledException(cancellationToken);
-                            }
+                            length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
                         }
-                        finally
+                        catch (Exception) when (cancellationToken.IsCancellationRequested)
                         {
-                            if (!receiveSignal.TryRelease())
-                            {
-                                Sally7Exception.ThrowFailedToSignalReceiveDone();
-                            }
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // Should never happen, but required to satisfy compiler analysis of length initialization.
+                            throw new OperationCanceledException(cancellationToken);
+                        }
+                    }
+                    finally
+                    {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        await closeOnCancel.DisposeAsync().ConfigureAwait(false);
+#else
+                        closeOnCancel.Dispose();
+#endif
+
+                        if (!receiveSignal.TryRelease())
+                        {
+                            Sally7Exception.ThrowFailedToSignalReceiveDone();
                         }
                     }
 
