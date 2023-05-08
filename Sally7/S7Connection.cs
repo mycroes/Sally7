@@ -54,11 +54,7 @@ namespace Sally7
             get => requestTimeout;
             set
             {
-                var totalMilliseconds = (long)value.TotalMilliseconds;
-                if (totalMilliseconds is < -1 or > int.MaxValue)
-                {
-                    Sally7Exception.ThrowTimeoutIsInvalid(value);
-                }
+                Assertions.AssertTimeoutIsValid(value);
 
                 requestTimeout = value;
             }
