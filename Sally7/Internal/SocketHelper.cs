@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.Net.Sockets;
 
 namespace Sally7.Internal
@@ -7,11 +7,12 @@ namespace Sally7.Internal
     {
         public static void CloseSocketCallback(object? state)
         {
-            var socket = state as Socket ?? throw new ArgumentException(
-                $"State passed to {nameof(CloseSocketCallback)} must be a {nameof(Socket)}, received '{state}' instead.",
-                nameof(state));
+            var socket = state as Socket;
 
-            socket.Close();
+            Debug.Assert(socket != null,
+                $"State passed to {nameof(CloseSocketCallback)} must be a {nameof(Socket)}, received '{state}' instead.");
+
+            socket!.Close();
         }
     }
 }
