@@ -98,7 +98,7 @@ namespace Sally7.RequestExecutor
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                         await
 #endif
-                        using var closeOnCancel = cancellationToken.MaybeUnsafeRegister(socket.Close);
+                        using var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
 
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
                         int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
@@ -135,7 +135,7 @@ namespace Sally7.RequestExecutor
 #if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     await
 #endif
-                    using (cancellationToken.MaybeUnsafeRegister(socket.Close))
+                    using (cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket))
                     {
                         _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
                         try
