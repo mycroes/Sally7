@@ -128,7 +128,7 @@ namespace Sally7.RequestExecutor
                 // Always wait for a response. The number of received responses should always equal the
                 // number of requests, so a single response must be received.
                 Request rec;
-                int length;
+                var length = 0;
 
                 using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
                 {
@@ -141,17 +141,11 @@ namespace Sally7.RequestExecutor
                         cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
                     try
                     {
-                        try
-                        {
-                            length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception) when (cancellationToken.IsCancellationRequested)
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            // Should never happen, but required to satisfy compiler analysis of length initialization.
-                            throw new OperationCanceledException(cancellationToken);
-                        }
+                        length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (Exception) when (cancellationToken.IsCancellationRequested)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
                     }
                     finally
                     {
