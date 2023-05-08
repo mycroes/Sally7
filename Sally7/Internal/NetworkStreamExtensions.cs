@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +7,6 @@ namespace Sally7.Internal
 {
     internal static class NetworkStreamExtensions
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NET5_0_OR_GREATER
         public static ValueTask FrameworkSpecificWriteAsync(this NetworkStream stream, byte[] buffer, int offset, int size,
             CancellationToken cancellationToken)
@@ -28,7 +26,6 @@ namespace Sally7.Internal
         }
 #endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #if NET5_0_OR_GREATER
         public static ValueTask<int> FrameworkSpecificReadAsync(this NetworkStream stream, byte[] buffer, int offset, int size,
             CancellationToken cancellationToken)
