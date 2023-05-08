@@ -90,16 +90,13 @@ namespace Sally7.RequestExecutor
                     mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
                     _ = await sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                    // If we bail while sending the PLC might still respond to the data that was sent.
+                    // This both breaks the send-one-receive-one flow as well as it might end up
+                    // completing a new job that reused the ID.
+                    var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
                     try
                     {
-                        // If we bail while sending the PLC might still respond to the data that was sent.
-                        // This both breaks the send-one-receive-one flow as well as it might end up
-                        // completing a new job that reused the ID.
-#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                        await
-#endif
-                        using var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
-
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
                         int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
                         Debug.Assert(written == request.Length);
@@ -115,6 +112,12 @@ namespace Sally7.RequestExecutor
                     }
                     finally
                     {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        await closeOnCancel.DisposeAsync().ConfigureAwait(false);
+#else
+                        closeOnCancel.Dispose();
+#endif
+
                         if (!sendSignal.TryRelease())
                         {
                             Sally7Exception.ThrowFailedToSignalSendDone();
