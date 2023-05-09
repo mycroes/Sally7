@@ -7,7 +7,6 @@
     <IncludeSymbols>true</IncludeSymbols>
     <DebugType>portable</DebugType>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Description>S7 communication library with a focus on performance</Description>
     <Authors>Michael Croes</Authors>
     <PackageProjectUrl>https://github.com/mycroes/Sally7</PackageProjectUrl>
@@ -22,6 +21,10 @@
     <WarningsNotAsErrors>1591</WarningsNotAsErrors>
     <NoWarn>1701;1702;1591</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
