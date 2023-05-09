@@ -7,7 +7,6 @@
     <IncludeSymbols>true</IncludeSymbols>
     <DebugType>portable</DebugType>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Description>S7 communication library with a focus on performance</Description>
     <Authors>Michael Croes</Authors>
     <PackageProjectUrl>https://github.com/mycroes/Sally7</PackageProjectUrl>
