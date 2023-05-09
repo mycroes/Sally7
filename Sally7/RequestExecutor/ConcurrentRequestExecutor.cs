@@ -90,6 +90,11 @@ namespace Sally7.RequestExecutor
                     mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
                     _ = await sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                    // If we bail while sending the PLC might still respond to the data that was sent.
+                    // This both breaks the send-one-receive-one flow as well as it might end up
+                    // completing a new job that reused the ID.
+                    var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
                     try
                     {
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
@@ -107,6 +112,12 @@ namespace Sally7.RequestExecutor
                     }
                     finally
                     {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        await closeOnCancel.DisposeAsync().ConfigureAwait(false);
+#else
+                        closeOnCancel.Dispose();
+#endif
+
                         if (!sendSignal.TryRelease())
                         {
                             Sally7Exception.ThrowFailedToSignalSendDone();
@@ -117,17 +128,33 @@ namespace Sally7.RequestExecutor
                 // Always wait for a response. The number of received responses should always equal the
                 // number of requests, so a single response must be received.
                 Request rec;
-                int length;
+                var length = 0;
 
                 using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
                 {
                     _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+                    // If we bail while reading we break the send-one-receive-one flow, so we might as well close right away.
+                    // There is minimal risk of closing connections while data was actually received but handling here
+                    // avoids registering on the cancellationToken on every socket call.
+                    var closeOnCancel =
+                        cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
                     try
                     {
                         length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
                     }
+                    catch (Exception) when (cancellationToken.IsCancellationRequested)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
                     finally
                     {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        await closeOnCancel.DisposeAsync().ConfigureAwait(false);
+#else
+                        closeOnCancel.Dispose();
+#endif
+
                         if (!receiveSignal.TryRelease())
                         {
                             Sally7Exception.ThrowFailedToSignalReceiveDone();
@@ -139,9 +166,12 @@ namespace Sally7.RequestExecutor
 
                     if ((uint)(replyJobId - 1) >= (uint)maxRequests)
                     {
+                        // todo: This is breaking, because we return the current jobId to the pool
+                        // so when that gets answered it might complete an incorrect request.
                         S7CommunicationException.ThrowInvalidJobID(replyJobId, message);
                     }
 
+                    // todo: There's no state validation on the request, potentially this is not rented out at all.
                     rec = jobPool.GetRequest(replyJobId);
 
                     message.CopyTo(rec.Buffer);
