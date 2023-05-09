@@ -11,6 +11,8 @@
     <Description>S7 communication library with a focus on performance</Description>
     <Authors>Michael Croes</Authors>
     <PackageProjectUrl>https://github.com/mycroes/Sally7</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/mycroes/Sally7</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>siemens s7 plc</PackageTags>
@@ -37,6 +39,10 @@
   <ItemGroup Condition="'$(TargetFramework)' != 'net5.0'">
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0" />
     <PackageReference Include="System.Threading.Channels" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>
