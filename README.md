@@ -4,7 +4,7 @@ C# implementation of Siemens S7 connections with a focus on performance
 
 
 ![license](https://img.shields.io/github/license/mycroes/Sally7.svg)
-[![AppVeyor](https://img.shields.io/appveyor/ci/mycroes/Sally7/develop.svg)](https://ci.appveyor.com/project/mycroes/sally7)
+[![.NET](https://github.com/mycroes/Sally7/actions/workflows/dotnet.yml/badge.svg)](https://github.com/mycroes/Sally7/actions/workflows/dotnet.yml)
 [![NuGet](https://img.shields.io/nuget/v/Sally7.svg)](https://www.nuget.org/packages/Sally7)
 
 
