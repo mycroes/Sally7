@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-using Sally7.ValueConversion;
-using Xunit;
+﻿using Sally7.ValueConversion;
 
 namespace Sally7.Tests
 {
