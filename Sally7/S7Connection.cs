@@ -20,9 +20,13 @@ namespace Sally7
         /// </summary>
         public static TimeSpan DefaultRequestTimeout => TimeSpan.FromSeconds(5);
 
-        private const int IsoOverTcpPort = 102;
+        /// <summary>
+        /// The default port number used for S7 communication.
+        /// </summary>
+        public const int DefaultPort = 102;
 
         private readonly string host;
+        private readonly int port = DefaultPort;
         private readonly Tsap sourceTsap;
         private readonly Tsap destinationTsap;
         private readonly RequestExecutorFactory executorFactory;
@@ -83,6 +87,31 @@ namespace Sally7
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="S7Connection"/> class with a specified host, port,
+        /// source TSAP and destination TSAP.
+        ///
+        /// Use the <see cref="Plc.ConnectionFactory"/> to create a connection using default TSAP values.
+        /// </summary>
+        /// <param name="host">The PLC host, specified as IP address or hostname.</param>
+        /// <param name="port">The TCP port to connect to.</param>
+        /// <param name="sourceTsap">The local TSAP for the connection.</param>
+        /// <param name="destinationTsap">The remote TSAP for the connection.</param>
+        /// <param name="memoryPool">The memory pool used to allocate buffers.</param>
+        /// <param name="executorFactory">
+        /// The factory used to create an executor after the connection is initialized.
+        /// </param>
+        public S7Connection(string host, int port, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default,
+            RequestExecutorFactory? executorFactory = default)
+        {
+            this.host = host;
+            this.port = port;
+            this.sourceTsap = sourceTsap;
+            this.destinationTsap = destinationTsap;
+            this.memoryPool = memoryPool;
+            this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="S7Connection"/> class with a specified host, source TSAP
         /// and destination TSAP.
         ///
@@ -126,10 +155,10 @@ namespace Sally7
                     linkedToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, TcpClient.Client);
 
 #if NET5_0_OR_GREATER
-                await TcpClient.ConnectAsync(host, IsoOverTcpPort, linkedToken).ConfigureAwait(false);
+                await TcpClient.ConnectAsync(host, port, linkedToken).ConfigureAwait(false);
 #else
                 linkedToken.ThrowIfCancellationRequested();
-                await TcpClient.ConnectAsync(host, IsoOverTcpPort).ConfigureAwait(false);
+                await TcpClient.ConnectAsync(host, port).ConfigureAwait(false);
 #endif
 
                 var stream = TcpClient.GetStream();
