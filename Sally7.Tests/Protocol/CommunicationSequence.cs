@@ -208,6 +208,85 @@ internal class CommunicationSequence
         }.Concat(data).ToArray());
     }
 
+    public CommunicationSequence AddWrite(Area area, int dbNumber, int address, int length, TransportSize transportSize,
+        VariableType variableType, byte[] data)
+    {
+        var dataLength = 4 + data.Length;
+
+        return AddCall(new byte[]
+        {
+            // TPKT
+            3, // Version
+            0, // Reserved
+            0, 37, // Length
+
+            // Data header
+            2, // Length
+            0b1111_0000, // Data identifier
+            0b1_000_0000, // PDU number and end of transmission
+
+            // S7 header
+            0x32, // Protocol ID
+            0x01, // Message type job request
+            0, 0, // Reserved
+            1, 1, // PDU reference
+            0, 14, // Parameter length (Write request)
+            (byte)(dataLength >> 8 & 0xff), (byte)(dataLength & 0xff), // Data length
+
+            // Write request
+            0x05, // Function code
+            1, // Number of items
+
+            // Request item
+            0x12, // Spec
+            10, // Length of request item
+            0x10, // AddressingMode S7 any
+            (byte) variableType, // Variable type
+            (byte) (length >> 8 & 0xff), // Length, upper byte
+            (byte) (length & 0xff), // Length, lower byte
+            (byte) (dbNumber >> 8 & 0xff), // DB number, upper byte
+            (byte) (dbNumber & 0xff), // DB number, lower byte
+            (byte) area,
+            (byte) (address >> 16 & 0xff), // Address, upper byte
+            (byte) (address >> 8 & 0xff), // Address, middle byte
+            (byte) (address & 0xff), // Address, lower byte,
+
+            // Data
+            0, // ErrorCode
+            (byte) transportSize, // Transport size
+            (byte) (data.Length >> 5 & 0xff),
+            (byte) (data.Length << 3 & 0xff),
+        }.Concat(data).ToArray(), new byte[]
+        {
+            // TPKT
+            3, // Version
+            0, // Reserved
+            0, 22, // Length
+
+            // Data header
+            2, // Length
+            0b1111_0000, // Data identifier
+            0b1_000_0000, // PDU number and end of transmission
+
+            // S7 header
+            0x32, // Protocol ID
+            0x03, // Message type ack data
+            0, 0, // Reserved
+            1, 1, // PDU reference
+            0, 2, // Parameter length (Write response)
+            0, 1, // Data length
+            0, // Error class
+            0, // Error code
+
+            // Write response
+            0x05, // Function code
+            1, // Number of items
+
+            // Result code per item
+            0xff, // ErrorCode
+        }.Concat(data).ToArray());
+    }
+
     public Task Serve(out int port)
     {
         var socket = CreateBoundListenSocket(out port);
