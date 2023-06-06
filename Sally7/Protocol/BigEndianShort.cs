@@ -1,4 +1,7 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Sally7.Protocol
 {
@@ -8,10 +11,21 @@ namespace Sally7.Protocol
         public byte High;
         public byte Low;
 
-        public static implicit operator BigEndianShort(int value) =>
-            new BigEndianShort {High = (byte) (value >> 8), Low = (byte) value};
+        public static implicit operator BigEndianShort(int intValue)
+        {
+            var value = BitConverter.IsLittleEndian
+                ? BinaryPrimitives.ReverseEndianness((ushort)intValue)
+                : (ushort)intValue;
+            return Unsafe.As<ushort, BigEndianShort>(ref value);
+        }
 
-        public static implicit operator BigEndianShort(byte value) => new BigEndianShort {High = 0, Low = value};
+        public static implicit operator BigEndianShort(byte byteValue)
+        {
+            var value = BitConverter.IsLittleEndian
+                ? BinaryPrimitives.ReverseEndianness((ushort)byteValue)
+                : byteValue;
+            return Unsafe.As<ushort, BigEndianShort>(ref value);
+        }
 
         public static implicit operator int(BigEndianShort ns) => ns.High << 8 | ns.Low;
 
