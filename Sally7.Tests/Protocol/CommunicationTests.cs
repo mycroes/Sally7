@@ -39,7 +39,7 @@ public class CommunicationTests
     {
         var sourceTsap = new Tsap(201, 202);
         var destinationTsap = new Tsap(203, 204);
-        var dataItem = new DataBlockDataItem<short> { DbNumber = 9, StartByte = 6 };
+        var dataItem = new DataBlockDataItem<short>(9, 6);
 
         var communication = new CommunicationSequence(output)
             .AddConnectRequest(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap)
@@ -63,7 +63,7 @@ public class CommunicationTests
     {
         var sourceTsap = new Tsap(201, 202);
         var destinationTsap = new Tsap(203, 204);
-        var dataItem = new DataBlockDataItem<short> { DbNumber = 9, StartByte = 6, Value = 513 };
+        var dataItem = new DataBlockDataItem<short>(9, 6) { Value = 513 };
 
         var communication = new CommunicationSequence(output)
             .AddConnectRequest(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap).AddCommunicationSetup()

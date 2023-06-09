@@ -9,12 +9,10 @@ namespace Sally7.Protocol.S7
         public byte Mid;
         public byte Low;
 
-        public void FromStartByteAndBit(int startByte, int bit)
+        public static Address FromStartByteAndBit(int startByte, int bit)
         {
             var value = startByte * 8 + bit;
-            Low = (byte) value;
-            Mid = (byte) (value >> 8);
-            High = (byte) (value >> 16);
+            return new Address { Low = (byte)value, Mid = (byte)(value >> 8), High = (byte)(value >> 16) };
         }
 
         public static implicit operator Address(int value)
