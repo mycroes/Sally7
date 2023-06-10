@@ -22,7 +22,7 @@ namespace Sally7.Internal
             if (length < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(length),
-                    $"Length must be greater or equal to 1. Value provided was: {length}.");
+                    $"Length must be greater than or equal to 1. Value provided was: {length}.");
             }
 
             if (type.IsValueType && length != 1)
