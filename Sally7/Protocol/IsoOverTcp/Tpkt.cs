@@ -32,13 +32,6 @@ namespace Sally7.Protocol.IsoOverTcp
             }
         }
 
-        public void Init(BigEndianShort length)
-        {
-            Version = IsoVersion;
-            Reserved = 0;
-            Length = length;
-        }
-
         public readonly int MessageLength() => Length - 4;
     }
 }
