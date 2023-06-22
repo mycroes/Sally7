@@ -44,13 +44,13 @@ internal static class WireFormatting
 
     public static int WriteJobRequestHeader(ref byte destination, int paramLength, int dataLength)
     {
-        var offset = WriteInt32(ref destination, JobRequestHeader1);
+        WriteInt32(ref destination, JobRequestHeader1);
         // Legacy, the
-        offset += WriteInt16(ref destination.GetOffset(offset), 1 << 8); // PDU ref
-        offset += WriteInt16(ref destination.GetOffset(offset), (short)paramLength);
-        offset += WriteInt16(ref destination.GetOffset(offset), (short)dataLength);
+        WriteInt16(ref destination.GetOffset(4), 1 << 8); // PDU ref
+        WriteInt16(ref destination.GetOffset(6), (short)paramLength);
+        WriteInt16(ref destination.GetOffset(8), (short)dataLength);
 
-        return offset;
+        return 10;
     }
 
     public static int WriteInt16(ref byte destination, short value)
