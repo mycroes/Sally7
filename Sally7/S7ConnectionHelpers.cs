@@ -59,7 +59,7 @@ namespace Sally7
                 parameters[i].Count = dataItems[i].ReadCount;
             }
 
-            return BuildS7JobRequest(buffer, dataItems.Length * 12 + 2, 0);
+            return BuildS7JobRequest(buffer, (ushort)(dataItems.Length * 12 + 2), 0);
         }
 
         public static int BuildWriteRequest(Span<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
@@ -74,8 +74,8 @@ namespace Sally7
                 S7ProtocolException.ThrowDataItemCountExceedsParameterCount(dataItems.Length, parameters.Length);
             }
 
-            var fnParameterLength = dataItems.Length * 12 + 2;
-            var dataLength = 0;
+            var fnParameterLength = (ushort) (dataItems.Length * 12 + 2);
+            ushort dataLength = 0;
             var data = span.Slice(fnParameterLength);
 
             for (var i = 0; i < dataItems.Length; i++)
@@ -95,7 +95,7 @@ namespace Sally7
                 {
                     data[++length] = 0;
                 }
-                dataLength += length;
+                dataLength += (ushort) length;
 
                 data = data.Slice(length);
             }
@@ -112,7 +112,7 @@ namespace Sally7
             requestItem.VariableType = dataItem.VariableType;
         }
 
-        private static int BuildS7JobRequest(Span<byte> buffer, int parameterLength, int dataLength)
+        private static int BuildS7JobRequest(Span<byte> buffer, ushort parameterLength, ushort dataLength)
         {
             ref var start = ref MemoryMarshal.GetReference(buffer);
             var len = parameterLength + dataLength + 17; // Error omitted

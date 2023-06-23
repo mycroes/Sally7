@@ -6,13 +6,13 @@ namespace Sally7.Internal;
 
 internal static class NetworkOrderSerializer
 {
-    public static void WriteInt16(ref byte destination, short value)
+    public static void WriteUInt16(ref byte destination, ushort value)
     {
         Unsafe.WriteUnaligned(ref destination,
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
     }
 
-    public static void WriteInt32(ref byte destination, int value)
+    public static void WriteUInt32(ref byte destination, uint value)
     {
         Unsafe.WriteUnaligned(ref destination,
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);

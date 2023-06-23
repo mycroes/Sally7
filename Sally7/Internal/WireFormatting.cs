@@ -5,7 +5,7 @@ namespace Sally7.Internal;
 
 internal static class WireFormatting
 {
-    private const int Tpkt = 0x03_00_00_00;
+    private const uint Tpkt = 0x03_00_00_00;
 
     /// <summary>
     /// Data struct.
@@ -29,38 +29,38 @@ internal static class WireFormatting
     /// </remarks>
     private const short PduRef = 1 << 8;
 
-    public static int WriteTpkt(ref byte destination, int length)
+    public static uint WriteTpkt(ref byte destination, int length)
     {
-        return WriteInt32(ref destination, Tpkt | length);
+        return WriteUInt32(ref destination, (uint) (Tpkt | length));
     }
 
-    public static int WriteData(ref byte destination)
+    public static uint WriteData(ref byte destination)
     {
         // For performance we write an int instead of separate values, the final byte of the int will be overwritten.
-        WriteInt32(ref destination, Data);
+        WriteUInt32(ref destination, Data);
 
         return 3;
     }
 
-    public static int WriteJobRequestHeader(ref byte destination, int paramLength, int dataLength)
+    public static uint WriteJobRequestHeader(ref byte destination, ushort paramLength, ushort dataLength)
     {
-        WriteInt32(ref destination, JobRequestHeader1);
-        WriteInt16(ref destination.GetOffset(4), 1 << 8); // PDU ref
-        WriteInt16(ref destination.GetOffset(6), (short)paramLength);
-        WriteInt16(ref destination.GetOffset(8), (short)dataLength);
+        WriteUInt32(ref destination, JobRequestHeader1);
+        WriteUInt16(ref destination.GetOffset(4), 1 << 8); // PDU ref
+        WriteUInt16(ref destination.GetOffset(6), paramLength);
+        WriteUInt16(ref destination.GetOffset(8), dataLength);
 
         return 10;
     }
 
-    public static int WriteInt16(ref byte destination, short value)
+    public static uint WriteUInt16(ref byte destination, ushort value)
     {
-        NetworkOrderSerializer.WriteInt16(ref destination, value);
+        NetworkOrderSerializer.WriteUInt16(ref destination, value);
         return sizeof(short);
     }
 
-    public static int WriteInt32(ref byte destination, int value)
+    public static uint WriteUInt32(ref byte destination, uint value)
     {
-        NetworkOrderSerializer.WriteInt32(ref destination, value);
+        NetworkOrderSerializer.WriteUInt32(ref destination, value);
         return sizeof(int);
     }
 }
