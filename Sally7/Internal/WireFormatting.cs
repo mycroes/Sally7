@@ -45,7 +45,6 @@ internal static class WireFormatting
     public static int WriteJobRequestHeader(ref byte destination, int paramLength, int dataLength)
     {
         WriteInt32(ref destination, JobRequestHeader1);
-        // Legacy, the
         WriteInt16(ref destination.GetOffset(4), 1 << 8); // PDU ref
         WriteInt16(ref destination.GetOffset(6), (short)paramLength);
         WriteInt16(ref destination.GetOffset(8), (short)dataLength);
