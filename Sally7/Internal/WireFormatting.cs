@@ -27,7 +27,7 @@ internal static class WireFormatting
     /// This value is here for legacy reasons. The <see cref="ConcurrentRequestExecutor"/> modifies the lower
     /// byte to identify responses, the upper byte isn't actually used at the moment.
     /// </remarks>
-    private const short PduRef = 1 << 8;
+    private const ushort PduRef = 1 << 8;
 
     public static uint WriteTpkt(ref byte destination, int length)
     {
@@ -45,7 +45,7 @@ internal static class WireFormatting
     public static uint WriteJobRequestHeader(ref byte destination, ushort paramLength, ushort dataLength)
     {
         WriteUInt32(ref destination, JobRequestHeader1);
-        WriteUInt16(ref destination.GetOffset(4), 1 << 8); // PDU ref
+        WriteUInt16(ref destination.GetOffset(4), PduRef);
         WriteUInt16(ref destination.GetOffset(6), paramLength);
         WriteUInt16(ref destination.GetOffset(8), dataLength);
 
