@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="$(AssemblyName).Benchmarks" />
   </ItemGroup>
 
   <ItemGroup>
