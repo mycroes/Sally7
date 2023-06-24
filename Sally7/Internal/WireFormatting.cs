@@ -42,7 +42,7 @@ internal static class WireFormatting
         return 3;
     }
 
-    public static uint WriteJobRequestHeader(ref byte destination, ushort paramLength, ushort dataLength)
+    public static uint WriteJobRequestHeader(ref byte destination, int paramLength, int dataLength)
     {
         WriteUInt32(ref destination, JobRequestHeader1);
         WriteUInt16(ref destination.GetOffset(4), PduRef);
