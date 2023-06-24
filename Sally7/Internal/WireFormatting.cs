@@ -1,4 +1,7 @@
-﻿using Sally7.Protocol.S7.Messages;
+﻿using System;
+using System.Buffers.Binary;
+using System.Runtime.CompilerServices;
+using Sally7.Protocol.S7.Messages;
 using Sally7.RequestExecutor;
 
 namespace Sally7.Internal;
@@ -17,9 +20,6 @@ internal static class WireFormatting
         | 0b1111_0000 << 16 // Identifier
         | 0b1000_0000 << 8; // PDU number and EOT
 
-    private const int JobRequestHeader1 = 0x32 << 24 // Protocol ID
-        | (byte)MessageType.JobRequest << 16; // Message type
-
     /// <summary>
     /// The PDU reference.
     /// </summary>
@@ -28,6 +28,8 @@ internal static class WireFormatting
     /// byte to identify responses, the upper byte isn't actually used at the moment.
     /// </remarks>
     private const ushort PduRef = 1 << 8;
+
+    private static ulong JobRequestHeader1 = 0x32L << 56 | (long)MessageType.JobRequest << 48 | PduRef << 16;
 
     public static uint WriteTpkt(ref byte destination, int length)
     {
@@ -44,10 +46,11 @@ internal static class WireFormatting
 
     public static uint WriteJobRequestHeader(ref byte destination, int paramLength, int dataLength)
     {
-        WriteUInt32(ref destination, JobRequestHeader1);
-        WriteUInt16(ref destination.GetOffset(4), PduRef);
-        WriteUInt16(ref destination.GetOffset(6), paramLength);
-        WriteUInt16(ref destination.GetOffset(8), dataLength);
+        var header = JobRequestHeader1 | (ushort) paramLength;
+
+        Unsafe.WriteUnaligned(ref destination,
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(header) : header);
+        WriteUInt16(ref destination.GetOffset(8), (ushort)dataLength);
 
         return 10;
     }
