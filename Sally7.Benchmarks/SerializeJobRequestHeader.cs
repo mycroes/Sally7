@@ -14,7 +14,9 @@ namespace Sally7.Benchmarks
         private const int JobRequestHeader1 = 0x32 << 24 // Protocol ID
             | (byte)MessageType.JobRequest << 16; // Message type
 
-        private static ulong JobRequestHeaderLong = 0x32L << 56 | (long)MessageType.JobRequest << 48;
+        private const ushort PduRef = 1 << 8;
+
+        private static ulong JobRequestHeaderLong = 0x32L << 56 | (long)MessageType.JobRequest << 48 | PduRef << 16;
 
         private readonly byte[] buffer = new byte[10];
 
@@ -49,7 +51,7 @@ namespace Sally7.Benchmarks
         [GlobalCleanup]
         public void VerifyBuffer()
         {
-            byte[] expected = { 0x32, 1, 0, 0, 0, 0, 0, 10, 0, 20 };
+            byte[] expected = { 0x32, 1, 0, 0, 1, 0, 0, 10, 0, 20 };
             if (!buffer.SequenceEqual(expected))
             {
                 throw new Exception($"""
@@ -63,7 +65,7 @@ namespace Sally7.Benchmarks
         public static uint WriteFieldsOneByOne(ref byte destination, int paramLength, int dataLength)
         {
             WriteUInt32(ref destination, JobRequestHeader1);
-            WriteUInt16(ref destination.GetOffset(4), 0); // Ignore PDU ref, leave to request executor.
+            WriteUInt16(ref destination.GetOffset(4), PduRef); // Ignore PDU ref, leave to request executor.
             WriteUInt16(ref destination.GetOffset(6), (ushort)paramLength);
             WriteUInt16(ref destination.GetOffset(8), (ushort)dataLength);
 
@@ -86,13 +88,14 @@ namespace Sally7.Benchmarks
             var request = stackalloc ushort[5];
             request[0] = 0x32_01;
             request[1] = 0;
-            request[2] = 0; // PDU, ignore
+            request[2] = PduRef;
             request[3] = (ushort)paramLength;
             request[4] = (ushort)dataLength;
 
             if (BitConverter.IsLittleEndian)
             {
                 request[0] = BinaryPrimitives.ReverseEndianness(request[0]);
+                request[2] = BinaryPrimitives.ReverseEndianness(request[2]);
                 request[3] = BinaryPrimitives.ReverseEndianness(request[3]);
                 request[4] = BinaryPrimitives.ReverseEndianness(request[4]);
             }
@@ -110,7 +113,7 @@ namespace Sally7.Benchmarks
                     ProtocolId = 0x32,
                     MessageType = (byte)MessageType.JobRequest,
                     Reserved = 0,
-                    PduRef = 0,
+                    PduRef = BinaryPrimitives.ReverseEndianness(PduRef),
                     ParamLength = BinaryPrimitives.ReverseEndianness((ushort)paramLength),
                     DataLength = BinaryPrimitives.ReverseEndianness((ushort)dataLength)
                 }
@@ -119,7 +122,7 @@ namespace Sally7.Benchmarks
                     ProtocolId = 0x32,
                     MessageType = (byte)MessageType.JobRequest,
                     Reserved = 0,
-                    PduRef = 0,
+                    PduRef = PduRef,
                     ParamLength = (ushort)paramLength,
                     DataLength = (ushort)dataLength
                 };
