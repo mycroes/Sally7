@@ -34,8 +34,7 @@ namespace Sally7
             offset += WireFormatting.WriteData(ref start.GetOffset(offset));
             offset += WireFormatting.WriteJobRequestHeader(ref start.GetOffset(offset), CommunicationSetup.Size, 0);
 
-            // Error class and error code are not used, so next starts at 7 + 10
-            ref var setup = ref buffer.Struct<CommunicationSetup>(17);
+            ref var setup = ref start.GetOffset(offset).AsStruct<CommunicationSetup>();
             setup.Init(10, 10, 960);
 
             return len;
