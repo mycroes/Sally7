@@ -58,12 +58,12 @@ internal static class WireFormatting
     public static uint WriteUInt16(ref byte destination, ushort value)
     {
         NetworkOrderSerializer.WriteUInt16(ref destination, value);
-        return sizeof(short);
+        return sizeof(ushort);
     }
 
     public static uint WriteUInt32(ref byte destination, uint value)
     {
         NetworkOrderSerializer.WriteUInt32(ref destination, value);
-        return sizeof(int);
+        return sizeof(uint);
     }
 }
