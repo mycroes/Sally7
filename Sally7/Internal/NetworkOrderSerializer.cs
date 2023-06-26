@@ -17,4 +17,10 @@ internal static class NetworkOrderSerializer
         Unsafe.WriteUnaligned(ref destination,
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
     }
+
+    public static void WriteUInt64(ref byte destination, ulong value)
+    {
+        Unsafe.WriteUnaligned(ref destination,
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(value) : value);
+    }
 }
