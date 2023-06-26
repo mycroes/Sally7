@@ -48,9 +48,8 @@ internal static class WireFormatting
     {
         var header = JobRequestHeader1 | (ushort) paramLength;
 
-        Unsafe.WriteUnaligned(ref destination,
-            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(header) : header);
-        WriteUInt16(ref destination.GetOffset(8), (ushort)dataLength);
+        NetworkOrderSerializer.WriteUInt64(ref destination, header);
+        NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(8), (ushort)dataLength);
 
         return 10;
     }
