@@ -1,7 +1,4 @@
-﻿using System;
-using System.Buffers.Binary;
-using System.Runtime.CompilerServices;
-using Sally7.Protocol.S7.Messages;
+﻿using Sally7.Protocol.S7.Messages;
 using Sally7.RequestExecutor;
 
 namespace Sally7.Internal;
