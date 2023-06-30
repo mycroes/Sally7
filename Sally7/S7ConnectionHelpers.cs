@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Sally7.Infrastructure;
-using Sally7.Protocol;
+using Sally7.Internal;
 using Sally7.Protocol.Cotp;
 using Sally7.Protocol.Cotp.Messages;
-using Sally7.Protocol.IsoOverTcp;
 using Sally7.Protocol.S7;
 using Sally7.Protocol.S7.Messages;
 
@@ -15,28 +14,28 @@ namespace Sally7
     {
         public static int BuildConnectRequest(Span<byte> buffer, Tsap sourceTsap, Tsap destinationTsap)
         {
+            ref var start = ref MemoryMarshal.GetReference(buffer);
+
             ref var message = ref buffer.Struct<ConnectionRequestMessage>(4);
             message.Init(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap);
+
             var len = 4 + ConnectionRequestMessage.Size;
-            buffer.Struct<Tpkt>(0).Init(len);
+            WireFormatting.WriteTpkt(ref start, len);
 
             return len;
         }
 
         public static int BuildCommunicationSetup(Span<byte> buffer)
         {
-            ref var data = ref buffer.Struct<Data>(4);
-            data.Init();
-
-            ref var header = ref buffer.Struct<Header>(7);
-            header.Init(MessageType.JobRequest, CommunicationSetup.Size, 0);
-
-            // Error class and error code are not used, so next starts at 7 + 10
-            ref var setup = ref buffer.Struct<CommunicationSetup>(17);
-            setup.Init(10, 10, 960);
+            ref var start = ref MemoryMarshal.GetReference(buffer);
 
             var len = 17 + CommunicationSetup.Size;
-            buffer.Struct<Tpkt>(0).Init(len);
+            var offset = WireFormatting.WriteTpkt(ref start, len);
+            offset += WireFormatting.WriteData(ref start.GetOffset(offset));
+            offset += WireFormatting.WriteJobRequestHeader(ref start.GetOffset(offset), CommunicationSetup.Size, 0);
+
+            ref var setup = ref start.GetOffset(offset).AsStruct<CommunicationSetup>();
+            setup.Init(10, 10, 960);
 
             return len;
         }
@@ -112,12 +111,13 @@ namespace Sally7
             requestItem.VariableType = dataItem.VariableType;
         }
 
-        private static int BuildS7JobRequest(Span<byte> buffer, BigEndianShort parameterLength, BigEndianShort dataLength)
+        private static int BuildS7JobRequest(Span<byte> buffer, int parameterLength, int dataLength)
         {
+            ref var start = ref MemoryMarshal.GetReference(buffer);
             var len = parameterLength + dataLength + 17; // Error omitted
-            buffer.Struct<Tpkt>(0).Init(len);
-            buffer.Struct<Data>(4).Init();
-            buffer.Struct<Header>(7).Init(MessageType.JobRequest, parameterLength, dataLength);
+            var offset = WireFormatting.WriteTpkt(ref start, len);
+            offset += WireFormatting.WriteData(ref start.GetOffset(offset));
+            offset += WireFormatting.WriteJobRequestHeader(ref start.GetOffset(offset), parameterLength, dataLength);
 
             return len;
         }

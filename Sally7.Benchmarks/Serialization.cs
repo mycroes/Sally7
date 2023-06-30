@@ -96,6 +96,53 @@ public class Serialization
     }
 
     [Benchmark]
+    public void Unsafe_WriteUnaligned_With_Optimizations()
+    {
+        const uint tpkt = 0x03_00_00_00;
+        const uint data = 2 << 24 | 0b1111_0000 << 16 | 0b1_000_0000;
+        const ulong jobRequestHeader = 0x32L << 56 | (ulong)MessageType.JobRequest << 48 | 0x0101 << 16;
+
+        var span = buffer.AsSpan();
+        ref var start = ref MemoryMarshal.GetReference(span);
+
+        // TPKT
+        var tpktWithLen = tpkt | 31;
+        Unsafe.WriteUnaligned(ref start,
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(tpktWithLen) : tpktWithLen);
+
+        // Data
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 4),
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(data) : data);
+
+        // S7 header
+        var jobRequestHeaderWithParamLength = jobRequestHeader | 14;
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 7),
+            BitConverter.IsLittleEndian
+                ? BinaryPrimitives.ReverseEndianness(jobRequestHeaderWithParamLength)
+                : jobRequestHeaderWithParamLength);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 15), (ushort) 0);
+
+        // Read request
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 17), (byte) FunctionCode.Read);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 18), (byte) 1);
+
+        // Request item
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 19), (byte) 0x12);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 20), (byte) 10);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 21), (byte) AddressingMode.S7Any);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 22), (byte) VariableType.Byte);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 23),
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)2) : (ushort)2);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 25),
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)2000) : (ushort)2000);
+        // Hack: Big endian int uses last 3 bytes for lower range, so we can just put the address in as int
+        // and overwrite the first byte afterwards.
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27),
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(20u) : 20u);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27), (byte) Area.DataBlock);
+    }
+
+    [Benchmark]
     public void Unsafe_As_Struct()
     {
         var span = buffer.AsSpan();
