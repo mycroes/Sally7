@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 using Sally7.Internal;
 using Sally7.Protocol.S7.Messages;
 
-namespace Sally7.Benchmarks
+namespace Sally7.Benchmarks.Serialization
 {
     public class SerializeJobRequestHeader
     {
@@ -74,7 +74,7 @@ namespace Sally7.Benchmarks
 
         public static uint WriteLongThenShort(ref byte destination, int paramLength, int dataLength)
         {
-            var header = JobRequestHeaderLong | (ushort) paramLength;
+            var header = JobRequestHeaderLong | (ushort)paramLength;
 
             Unsafe.WriteUnaligned(ref destination,
                     BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(header) : header);
