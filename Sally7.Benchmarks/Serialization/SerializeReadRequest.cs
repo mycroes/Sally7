@@ -8,7 +8,7 @@ using Sally7.Protocol.S7;
 
 namespace Sally7.Benchmarks.Serialization;
 
-public class Serialization
+public class SerializeReadRequest
 {
     private readonly byte[] buffer = new byte[31];
 
