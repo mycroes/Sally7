@@ -23,7 +23,7 @@ public class SerializePrimitivesAsLargerPrimitive
     }
 
     [Benchmark]
-    public void SerializeAsLarger()
+    public void CombineUsingUnsafeAs()
     {
         ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
         var longVal = MemoryMarshal.Cast<ushort, ulong>(value.AsSpan());
@@ -33,6 +33,21 @@ public class SerializePrimitivesAsLargerPrimitive
         {
             NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), longVal[i]);
             offset += sizeof(ulong);
+        }
+    }
+
+    [Benchmark]
+    public void CombineUsingShifts()
+    {
+        ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+
+        uint offset = 0;
+        for (var i = 0; i < value.Length; i+= 4)
+        {
+            var longVal = (ulong)value[0] << 48 | (ulong)value[1] << 32 | (ulong)value[2] << 16 | value[3];
+
+            NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), longVal);
+            offset += sizeof(ushort);
         }
     }
 }
