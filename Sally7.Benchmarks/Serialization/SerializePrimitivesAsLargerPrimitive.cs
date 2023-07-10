@@ -15,9 +15,9 @@ public class SerializePrimitivesAsLargerPrimitive
     {
         ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
         uint offset = 0;
-        for (var i = 0; i < value.Length; i++)
+        foreach (var val in value)
         {
-            NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value[i]);
+            NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), val);
             offset += sizeof(ushort);
         }
     }
@@ -29,9 +29,9 @@ public class SerializePrimitivesAsLargerPrimitive
         var longVal = MemoryMarshal.Cast<ushort, ulong>(value.AsSpan());
 
         uint offset = 0;
-        for (var i = 0; i < longVal.Length; i++)
+        foreach (var val in longVal)
         {
-            NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), longVal[i]);
+            NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), val);
             offset += sizeof(ulong);
         }
     }

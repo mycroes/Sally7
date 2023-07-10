@@ -1,7 +1,6 @@
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
 ```assembly
 ; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.SerializeOneByOne()
-       sub       rsp,28
        mov       rax,[rcx+10]
        test      rax,rax
        je        short M00_L03
@@ -9,33 +8,26 @@
        mov       eax,[rax+8]
 M00_L00:
        xor       eax,eax
+       mov       rcx,[rcx+8]
        xor       r8d,r8d
-       mov       r9,[rcx+8]
-       cmp       dword ptr [r9+8],0
+       mov       r9d,[rcx+8]
+       test      r9d,r9d
        jle       short M00_L02
 M00_L01:
-       mov       r9,[rcx+8]
-       cmp       r8d,[r9+8]
-       jae       short M00_L04
        mov       r10d,r8d
-       movzx     r9d,word ptr [r9+r10*2+10]
-       mov       r10d,eax
-       movbe     [rdx+r10],r9w
+       movzx     r10d,word ptr [rcx+r10*2+10]
+       mov       r11d,eax
+       movbe     [rdx+r11],r10w
        add       eax,2
        inc       r8d
-       mov       r9,[rcx+8]
-       cmp       [r9+8],r8d
+       cmp       r9d,r8d
        jg        short M00_L01
 M00_L02:
-       add       rsp,28
        ret
 M00_L03:
        xor       edx,edx
        jmp       short M00_L00
-M00_L04:
-       call      CORINFO_HELP_RNGCHKFAIL
-       int       3
-; Total bytes of code 96
+; Total bytes of code 69
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
