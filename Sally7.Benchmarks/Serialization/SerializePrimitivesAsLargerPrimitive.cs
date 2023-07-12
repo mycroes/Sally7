@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
@@ -10,27 +13,32 @@ public static class SerializePrimitivesAsLargerPrimitive
 {
     public class SerializeUInt16
     {
-        private readonly ushort[] value = { 1, 2, 3, 4, 5, 6, 7 };
         private readonly byte[] buffer = new byte[1024];
+
+        [ParamsSource(nameof(ValueParameters))]
+        public ushort[] Value { get; set; } = Array.Empty<ushort>();
+
+        public IEnumerable<ushort[]> ValueParameters =>
+            Enumerable.Range(1, 12).Select(l => Enumerable.Range(1, l).Select(x => (ushort)x).ToArray());
 
         [Benchmark(Baseline = true)]
         public int SerializeOneByOne()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
 
-            WriteUInt16(ref destination, value);
+            WriteUInt16(ref destination, Value);
 
-            return value.Length * sizeof(ushort);
+            return Value.Length * sizeof(ushort);
         }
 
         [Benchmark]
         public int UsingUnsafeReadUnaligned()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
-            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(value.AsSpan()));
+            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
 
             var offset = 0u;
-            for (var i = 0; i < value.Length; i++)
+            for (var i = 0; i < Value.Length; i++)
             {
                 var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
@@ -45,20 +53,20 @@ public static class SerializePrimitivesAsLargerPrimitive
         public int CombineUsingUnsafeAs()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
-            var longVal = MemoryMarshal.Cast<ushort, ulong>(value.AsSpan());
+            var longVal = MemoryMarshal.Cast<ushort, ulong>(Value.AsSpan());
 
             var offset = WriteUInt64(ref destination, longVal);
 
-            var rem = value.Length % 4;
+            var rem = Value.Length % 4;
             if (rem > 2)
             {
-                var intVal = MemoryMarshal.Cast<ushort, uint>(value.AsSpan().Slice(offset / sizeof(ushort)));
+                var intVal = MemoryMarshal.Cast<ushort, uint>(Value.AsSpan().Slice(offset / sizeof(ushort)));
                 offset += WriteUInt32(ref destination, intVal);
             }
 
             if ((rem & 1) == 1)
             {
-                offset += WriteUInt16(ref destination, value.AsSpan().Slice(offset / sizeof(ushort)));
+                offset += WriteUInt16(ref destination, Value.AsSpan().Slice(offset / sizeof(ushort)));
             }
 
             return offset;
@@ -68,14 +76,14 @@ public static class SerializePrimitivesAsLargerPrimitive
         public int CombineUsingUnsafeAsNoRemainderSplit()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
-            var longVal = MemoryMarshal.Cast<ushort, ulong>(value.AsSpan());
+            var longVal = MemoryMarshal.Cast<ushort, ulong>(Value.AsSpan());
 
             var offset = WriteUInt64(ref destination, longVal);
 
-            var rem = value.Length % 4;
+            var rem = Value.Length % 4;
             if (rem > 0)
             {
-                offset += WriteUInt16(ref destination, value.AsSpan().Slice(offset / sizeof(ushort)));
+                offset += WriteUInt16(ref destination, Value.AsSpan().Slice(offset / sizeof(ushort)));
             }
 
             return offset;
@@ -85,10 +93,10 @@ public static class SerializePrimitivesAsLargerPrimitive
         public int CombineUsingUnsafeReadUnaligned()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
-            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(value.AsSpan()));
+            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
 
             var offset = 0u;
-            for (var i = 0; i < value.Length / 4; i++)
+            for (var i = 0; i < Value.Length / 4; i++)
             {
                 var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
@@ -96,7 +104,7 @@ public static class SerializePrimitivesAsLargerPrimitive
                 offset += sizeof(ulong);
             }
 
-            for (var i = offset / 4; i < value.Length / 2; i++)
+            for (var i = offset / 4; i < Value.Length / 2; i++)
             {
                 var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
@@ -104,7 +112,7 @@ public static class SerializePrimitivesAsLargerPrimitive
                 offset += sizeof(uint);
             }
 
-            if (offset / 2 < value.Length)
+            if (offset / 2 < Value.Length)
             {
                 var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
