@@ -27,7 +27,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF17F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFD9D0017F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+8]
        mov       eax,[rax+8]
        add       eax,eax
@@ -101,7 +101,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9CFF1828]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFD9D011828]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+8]
        mov       ebp,[rcx+8]
@@ -132,7 +132,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9CFF1810]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
+       call      qword ptr [7FFD9D011810]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -157,7 +157,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF17F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFD9D0117F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -190,7 +190,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFD9CFB7498]
        int       3
 ; Total bytes of code 385
 ```
@@ -295,7 +295,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFF1828]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFD9D001828]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+8]
        mov       ecx,[rcx+8]
@@ -320,7 +320,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFF17F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFD9D0017F8]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -347,7 +347,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFD9CFA7498]
        int       3
 ; Total bytes of code 250
 ```
@@ -464,9 +464,9 @@ M00_L05:
        cmp       r8d,[rcx+8]
        jae       short M00_L06
        mov       ecx,eax
-       mov       ecx,[r10+rcx]
+       movzx     ecx,word ptr [r10+rcx]
        mov       r8d,eax
-       movbe     [rdx+r8],ecx
+       movbe     [rdx+r8],cx
        add       eax,4
 M00_L06:
        add       rsp,28
@@ -483,6 +483,6 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 263
+; Total bytes of code 265
 ```
 

@@ -88,8 +88,8 @@ public static class SerializePrimitivesAsLargerPrimitive
 
             if (offset / 2 < value.Length)
             {
-                var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
-                NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
+                var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+                NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
 
                 offset += sizeof(uint);
             }
