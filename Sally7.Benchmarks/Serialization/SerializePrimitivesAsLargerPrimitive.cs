@@ -24,6 +24,24 @@ public static class SerializePrimitivesAsLargerPrimitive
         }
 
         [Benchmark]
+        public int UsingUnsafeReadUnaligned()
+        {
+            ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(value.AsSpan()));
+
+            var offset = 0u;
+            for (var i = 0; i < value.Length; i++)
+            {
+                var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+                NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(ushort);
+            }
+
+            return (int) offset;
+        }
+
+        [Benchmark]
         public int CombineUsingUnsafeAs()
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
