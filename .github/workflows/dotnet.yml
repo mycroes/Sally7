@@ -69,7 +69,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
     - name: Run tests
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --verbosity normal --logger GitHubActions
 
   deploy:
     # Publish only when creating a GitHub Release
