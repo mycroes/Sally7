@@ -16,7 +16,7 @@ namespace Sally7.Tests
                 return b;
             }).ToArray();
 
-            var converter = ConverterFactory.GetFromPlcConverter<short[]>();
+            var converter = ConverterFactory.GetFromPlcConverter<short[]>(value.Length);
             var result = new short[value.Length];
             converter(ref result, bytes, value.Length);
 
@@ -35,7 +35,7 @@ namespace Sally7.Tests
                 return b;
             }).ToArray();
 
-            var converter = ConverterFactory.GetFromPlcConverter<int[]>();
+            var converter = ConverterFactory.GetFromPlcConverter<int[]>(value.Length);
             var result = new int[value.Length];
             converter(ref result, bytes, value.Length);
 
@@ -54,7 +54,7 @@ namespace Sally7.Tests
                 return b;
             }).ToArray();
 
-            var converter = ConverterFactory.GetFromPlcConverter<long[]>();
+            var converter = ConverterFactory.GetFromPlcConverter<long[]>(value.Length);
             var result = new long[value.Length];
             converter(ref result, bytes, value.Length);
 
@@ -73,7 +73,7 @@ namespace Sally7.Tests
                 return b;
             }).ToArray();
 
-            var converter = ConverterFactory.GetFromPlcConverter<float[]>();
+            var converter = ConverterFactory.GetFromPlcConverter<float[]>(value.Length);
             var result = new float[value.Length];
             converter(ref result, bytes, value.Length);
 
@@ -92,7 +92,7 @@ namespace Sally7.Tests
                 return b;
             }).ToArray();
 
-            var converter = ConverterFactory.GetFromPlcConverter<double[]>();
+            var converter = ConverterFactory.GetFromPlcConverter<double[]>(value.Length);
             var result = new double[value.Length];
             converter(ref result, bytes, value.Length);
 

@@ -9,10 +9,10 @@ namespace Sally7.ValueConversion
 
     internal static class ConverterFactory
     {
-        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>() =>
-            Unsafe.As<ConvertFromS7<TValue>>(FromS7Conversions.GetConverter<TValue>())!;
+        public static ConvertFromS7<TValue> GetFromPlcConverter<TValue>(int length) =>
+            Unsafe.As<ConvertFromS7<TValue>>(FromS7Conversions.GetConverter<TValue>(length))!;
 
-        public static ConvertToS7<TValue> GetToPlcConverter<TValue>() =>
-            Unsafe.As<ConvertToS7<TValue>>(ToS7Conversions.GetConverter<TValue>())!;
+        public static ConvertToS7<TValue> GetToPlcConverter<TValue>(int length) =>
+            Unsafe.As<ConvertToS7<TValue>>(ToS7Conversions.GetConverter<TValue>(length))!;
     }
 }

@@ -8,7 +8,7 @@ namespace Sally7.ValueConversion
 {
     internal static class ToS7Conversions
     {
-        public static Delegate GetConverter<TValue>()
+        public static Delegate GetConverter<TValue>(int length)
         {
             if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
             {
