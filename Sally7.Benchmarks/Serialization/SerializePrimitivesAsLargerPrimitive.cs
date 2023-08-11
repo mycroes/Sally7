@@ -94,9 +94,10 @@ public static class SerializePrimitivesAsLargerPrimitive
         {
             ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
             ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
+            var byteLen = Value.Length * sizeof(ushort);
 
             var offset = 0u;
-            for (var i = 0; i < Value.Length / 4; i++)
+            while (offset + sizeof(ulong) <= byteLen)
             {
                 var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
@@ -104,7 +105,7 @@ public static class SerializePrimitivesAsLargerPrimitive
                 offset += sizeof(ulong);
             }
 
-            for (var i = offset / 4; i < Value.Length / 2; i++)
+            if (offset + sizeof(uint) <= byteLen)
             {
                 var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
@@ -112,12 +113,18 @@ public static class SerializePrimitivesAsLargerPrimitive
                 offset += sizeof(uint);
             }
 
-            if (offset / 2 < Value.Length)
+            if (offset + sizeof(ushort) <= byteLen)
             {
                 var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
 
-                offset += sizeof(uint);
+                offset += sizeof(ushort);
+            }
+
+            if (offset < byteLen)
+            {
+                var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
             }
 
             return (int) offset;

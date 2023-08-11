@@ -27,7 +27,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -155,7 +155,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CC1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -186,7 +186,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9CFE1870]
+       call      qword ptr [7FFA51CC1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -211,7 +211,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFE1858]
+       call      qword ptr [7FFA51CC1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -244,7 +244,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C77498]
        int       3
 ; Total bytes of code 385
 ```
@@ -305,7 +305,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -330,7 +330,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -357,7 +357,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 250
 ```
@@ -427,58 +427,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -493,7 +485,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -525,7 +517,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D021858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -653,7 +645,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CD1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -684,7 +676,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D011870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
+       call      qword ptr [7FFA51CD1870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -709,7 +701,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -742,7 +734,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C87498]
        int       3
 ; Total bytes of code 385
 ```
@@ -847,7 +839,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -872,7 +864,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -899,7 +891,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 250
 ```
@@ -969,58 +961,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -1035,7 +1019,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -1067,7 +1051,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D021858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -1195,7 +1179,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -1226,7 +1210,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9CFE1870]
+       call      qword ptr [7FFA51CB1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -1251,7 +1235,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFE1858]
+       call      qword ptr [7FFA51CB1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -1284,7 +1268,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 385
 ```
@@ -1345,7 +1329,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -1370,7 +1354,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFE1858]
+       call      qword ptr [7FFA51CE1858]
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -1397,7 +1381,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 250
 ```
@@ -1445,58 +1429,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -1511,7 +1487,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -1543,7 +1519,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -1671,7 +1647,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CC1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -1702,7 +1678,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D011870]
+       call      qword ptr [7FFA51CC1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -1727,7 +1703,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CC1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -1760,7 +1736,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C77498]
        int       3
 ; Total bytes of code 385
 ```
@@ -1843,7 +1819,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -1868,7 +1844,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -1895,7 +1871,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 250
 ```
@@ -1965,58 +1941,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -2031,7 +1999,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -2063,7 +2031,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -2191,7 +2159,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D021888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CD1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -2222,7 +2190,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D021870]
+       call      qword ptr [7FFA51CD1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -2247,7 +2215,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D021858]
+       call      qword ptr [7FFA51CD1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -2280,7 +2248,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFD7498]
+       call      qword ptr [7FFA51C87498]
        int       3
 ; Total bytes of code 385
 ```
@@ -2341,7 +2309,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CC1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -2366,7 +2334,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CC1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -2393,7 +2361,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFA7498]
+       call      qword ptr [7FFA51C77498]
        int       3
 ; Total bytes of code 250
 ```
@@ -2463,58 +2431,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -2529,7 +2489,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -2561,7 +2521,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -2689,7 +2649,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -2720,7 +2680,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9CFE1870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
+       call      qword ptr [7FFA51CB1870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -2745,7 +2705,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -2778,7 +2738,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 385
 ```
@@ -2883,7 +2843,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9D021888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -2908,7 +2868,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9D021858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -2935,7 +2895,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFD7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 250
 ```
@@ -3005,58 +2965,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -3071,7 +3023,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -3103,7 +3055,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D001858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -3231,7 +3183,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9CFF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -3262,7 +3214,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9CFF1870]
+       call      qword ptr [7FFA51CE1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -3287,7 +3239,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]
+       call      qword ptr [7FFA51CE1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -3320,7 +3272,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFA7498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 385
 ```
@@ -3381,7 +3333,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CC1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -3406,7 +3358,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFF1858]
+       call      qword ptr [7FFA51CC1858]
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -3433,7 +3385,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFA7498]
+       call      qword ptr [7FFA51C77498]
        int       3
 ; Total bytes of code 250
 ```
@@ -3481,58 +3433,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -3547,7 +3491,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -3579,7 +3523,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -3707,7 +3651,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -3738,7 +3682,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D011870]
+       call      qword ptr [7FFA51CF1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -3763,7 +3707,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -3796,7 +3740,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51CA7498]
        int       3
 ; Total bytes of code 385
 ```
@@ -3879,7 +3823,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CD1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -3904,7 +3848,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -3931,7 +3875,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C87498]
        int       3
 ; Total bytes of code 250
 ```
@@ -4001,58 +3945,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -4067,7 +4003,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -4099,7 +4035,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -4227,7 +4163,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -4258,7 +4194,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D011870]
+       call      qword ptr [7FFA51CB1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -4283,7 +4219,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]
+       call      qword ptr [7FFA51CB1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -4316,7 +4252,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 385
 ```
@@ -4377,7 +4313,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -4402,7 +4338,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -4429,7 +4365,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFA7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 250
 ```
@@ -4499,58 +4435,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -4565,7 +4493,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -4597,7 +4525,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -4725,7 +4653,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D021888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CD1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -4756,7 +4684,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D021870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
+       call      qword ptr [7FFA51CD1870]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt32(Byte ByRef, System.ReadOnlySpan`1<UInt32>)
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -4781,7 +4709,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D021858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CD1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -4814,7 +4742,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFD7498]
+       call      qword ptr [7FFA51C87498]
        int       3
 ; Total bytes of code 385
 ```
@@ -4919,7 +4847,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFF1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -4944,7 +4872,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -4971,7 +4899,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFA7498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 250
 ```
@@ -5041,58 +4969,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -5107,7 +5027,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -5139,7 +5059,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9CFF1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CC1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -5267,7 +5187,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D011888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -5298,7 +5218,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D011870]
+       call      qword ptr [7FFA51CE1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -5323,7 +5243,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D011858]
+       call      qword ptr [7FFA51CE1858]
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -5356,7 +5276,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFC7498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 385
 ```
@@ -5417,7 +5337,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9CFE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CE1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -5442,7 +5362,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9CFE1858]
+       call      qword ptr [7FFA51CE1858]
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -5469,7 +5389,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CF97498]
+       call      qword ptr [7FFA51C97498]
        int       3
 ; Total bytes of code 250
 ```
@@ -5517,58 +5437,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -5583,7 +5495,7 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
 ## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
@@ -5615,7 +5527,7 @@ M00_L02:
        mov       [rsp+28],rax
        mov       [rsp+30],r8d
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D021858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CE1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        mov       rax,[rsi+10]
        mov       eax,[rax+8]
        add       eax,eax
@@ -5743,7 +5655,7 @@ M00_L01:
        mov       [rsp+50],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+48]
-       call      qword ptr [7FFD9D001888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CC1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ebp,[rcx+8]
@@ -5774,7 +5686,7 @@ M00_L02:
        mov       [rsp+40],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+38]
-       call      qword ptr [7FFD9D001870]
+       call      qword ptr [7FFA51CC1870]
        add       ebx,eax
 M00_L03:
        test      bpl,1
@@ -5799,7 +5711,7 @@ M00_L04:
        mov       [rsp+28],rdx
        mov       [rsp+30],eax
        lea       rdx,[rsp+28]
-       call      qword ptr [7FFD9D001858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CC1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       eax,ebx
        mov       ebx,eax
 M00_L05:
@@ -5832,7 +5744,7 @@ M00_L10:
        xor       r15d,r15d
        jmp       short M00_L04
 M00_L11:
-       call      qword ptr [7FFD9CFB7498]
+       call      qword ptr [7FFA51C77498]
        int       3
 ; Total bytes of code 385
 ```
@@ -5915,7 +5827,7 @@ M00_L01:
        mov       [rsp+38],ecx
        mov       rcx,rdi
        lea       rdx,[rsp+30]
-       call      qword ptr [7FFD9D001888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
+       call      qword ptr [7FFA51CB1888]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt64(Byte ByRef, System.ReadOnlySpan`1<UInt64>)
        mov       ebx,eax
        mov       rcx,[rsi+10]
        mov       ecx,[rcx+8]
@@ -5940,7 +5852,7 @@ M00_L02:
        mov       [rsp+20],rdx
        mov       [rsp+28],r14d
        lea       rdx,[rsp+20]
-       call      qword ptr [7FFD9D001858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
+       call      qword ptr [7FFA51CB1858]; Sally7.Benchmarks.Serialization.SerializePrimitivesAsLargerPrimitive.WriteUInt16(Byte ByRef, System.ReadOnlySpan`1<UInt16>)
        add       ebx,eax
 M00_L03:
        mov       eax,ebx
@@ -5967,7 +5879,7 @@ M00_L07:
        xor       r14d,r14d
        jmp       short M00_L02
 M00_L08:
-       call      qword ptr [7FFD9CFB7498]
+       call      qword ptr [7FFA51C67498]
        int       3
 ; Total bytes of code 250
 ```
@@ -6037,58 +5949,50 @@ M00_L01:
        add       rax,rax
        cmp       rax,7FFFFFFF
        ja        near ptr M00_L07
-       xor       eax,eax
-       xor       r9d,r9d
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       test      r8d,r8d
-       jle       short M00_L03
+       mov       eax,[r8+8]
+       add       eax,eax
+       xor       r8d,r8d
+       cdqe
+       cmp       rax,8
+       jl        short M00_L03
+       nop       dword ptr [rax+rax]
+       nop       dword ptr [rax+rax]
 M00_L02:
-       mov       r8d,eax
-       mov       r11,[r10+r8]
-       movbe     [rdx+r8],r11
-       add       eax,8
-       inc       r9d
-       mov       r8,[rcx+10]
-       mov       r8d,[r8+8]
-       shr       r8d,2
-       cmp       r8d,r9d
-       jg        short M00_L02
+       mov       r9d,r8d
+       mov       rcx,[r10+r9]
+       movbe     [rdx+r9],rcx
+       add       r8d,8
+       lea       ecx,[r8+8]
+       cmp       rcx,rax
+       jle       short M00_L02
 M00_L03:
-       mov       r8d,eax
-       shr       r8d,2
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
-       jle       short M00_L05
-M00_L04:
-       mov       r9d,eax
-       mov       r11d,[r10+r9]
-       movbe     [rdx+r9],r11d
-       add       eax,4
-       inc       r8d
-       mov       r9,[rcx+10]
-       mov       r9d,[r9+8]
-       shr       r9d,1
-       movsxd    r9,r9d
-       mov       r11d,r8d
-       cmp       r9,r11
+       lea       ecx,[r8+4]
+       cmp       rcx,rax
        jg        short M00_L04
-M00_L05:
-       mov       r8d,eax
-       shr       r8d,1
-       mov       rcx,[rcx+10]
-       cmp       r8d,[rcx+8]
-       jae       short M00_L06
-       mov       ecx,eax
+       mov       ecx,r8d
+       mov       ecx,[r10+rcx]
+       mov       r9d,r8d
+       movbe     [rdx+r9],ecx
+       add       r8d,4
+M00_L04:
+       lea       ecx,[r8+2]
+       cmp       rcx,rax
+       jg        short M00_L05
+       mov       ecx,r8d
        movzx     ecx,word ptr [r10+rcx]
-       mov       r8d,eax
-       movbe     [rdx+r8],cx
-       add       eax,4
+       mov       r9d,r8d
+       movbe     [rdx+r9],cx
+       add       r8d,2
+M00_L05:
+       mov       ecx,r8d
+       cmp       rcx,rax
+       jge       short M00_L06
+       mov       eax,r8d
+       movzx     eax,byte ptr [r10+rax]
+       mov       ecx,r8d
+       mov       [rdx+rcx],al
 M00_L06:
+       mov       eax,r8d
        add       rsp,28
        ret
 M00_L07:
@@ -6103,6 +6007,6 @@ M00_L09:
        xor       r10d,r10d
        xor       r11d,r11d
        jmp       near ptr M00_L01
-; Total bytes of code 265
+; Total bytes of code 246
 ```
 
