@@ -125,6 +125,7 @@ public static class SerializePrimitivesAsLargerPrimitive
             {
                 var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
                 Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+                offset += sizeof(byte);
             }
 
             return (int) offset;
