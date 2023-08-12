@@ -2,7 +2,9 @@
 using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using Sally7.Internal;
 
 namespace Sally7.ValueConversion
 {
@@ -59,10 +61,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromLong(value[i], 1, output.Slice(i * sizeof(long)));
-
-            return value.Length * sizeof(long);
+            return CopyBuffer(Unsafe.As<long[], byte[]>(ref value), output);
         }
 
         private static int ConvertFromInt(int value, int length, Span<byte> output)
@@ -76,10 +75,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromInt(value[i], 1, output.Slice(i * sizeof(int)));
-
-            return value.Length * sizeof(int);
+            return CopyBuffer(Unsafe.As<int[], byte[]>(ref value), output);
         }
 
         private static int ConvertFromShort(short value, int length, Span<byte> output)
@@ -93,10 +89,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromShort(value[i], 1, output.Slice(i * sizeof(short)));
-
-            return value.Length * sizeof(short);
+            return CopyBuffer(Unsafe.As<short[], byte[]>(ref value), output);
         }
 
         private static int ConvertFromByte(byte value, int length, Span<byte> output)
@@ -110,9 +103,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            value.AsSpan().CopyTo(output);
-
-            return value.Length;
+            return CopyBuffer(value, output);
         }
 
         private static int ConvertFromBoolArray(bool[]? value, int length, Span<byte> output)
@@ -188,6 +179,47 @@ namespace Sally7.ValueConversion
 
             return span.Length + 2;
 #endif
+        }
+
+        private static int CopyBuffer(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            ref var destination = ref MemoryMarshal.GetReference(output);
+            ref var source = ref MemoryMarshal.GetReference(input);
+
+            var offset = 0u;
+            while (offset + sizeof(ulong) <= input.Length)
+            {
+                var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
+                NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(ulong);
+            }
+
+            if (offset + sizeof(uint) <= input.Length)
+            {
+                var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
+                NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(uint);
+            }
+
+            if (offset + sizeof(ushort) <= input.Length)
+            {
+                var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+                NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(ushort);
+            }
+
+            if (offset < input.Length)
+            {
+                var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(byte);
+            }
+
+            return (int)offset;
         }
     }
 }
