@@ -187,7 +187,7 @@ namespace Sally7.ValueConversion
             ref var source = ref MemoryMarshal.GetReference(input);
 
             var offset = 0u;
-            while (offset + sizeof(ulong) <= input.Length)
+            while (offset <= input.Length - sizeof(ulong))
             {
                 var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
@@ -195,7 +195,7 @@ namespace Sally7.ValueConversion
                 offset += sizeof(ulong);
             }
 
-            if (offset + sizeof(uint) <= input.Length)
+            if (offset <= input.Length - sizeof(uint))
             {
                 var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
@@ -203,7 +203,7 @@ namespace Sally7.ValueConversion
                 offset += sizeof(uint);
             }
 
-            if (offset + sizeof(ushort) <= input.Length)
+            if (offset <= input.Length - sizeof(ushort))
             {
                 var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
                 NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
