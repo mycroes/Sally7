@@ -53,13 +53,8 @@ namespace Sally7.ValueConversion
         private static void ConvertToLongArray(ref long[]? value, ReadOnlySpan<byte> input, int length)
         {
             value ??= new long[length];
-            int i = 0;
 
-            while (!input.IsEmpty)
-            {
-                ConvertToLong(ref value[i++], input, 1);
-                input = input.Slice(sizeof(long));
-            }
+            BufferHelper.CopyAndFix(input, Unsafe.As<long[], byte[]>(ref value), length, sizeof(long));
         }
 
         private static void ConvertToInt(ref int value, ReadOnlySpan<byte> input, int length)
@@ -68,13 +63,8 @@ namespace Sally7.ValueConversion
         private static void ConvertToIntArray(ref int[]? value, ReadOnlySpan<byte> input, int length)
         {
             value ??= new int[length];
-            int i = 0;
 
-            while (!input.IsEmpty)
-            {
-                ConvertToInt(ref value[i++], input, 1);
-                input = input.Slice(sizeof(int));
-            }
+            BufferHelper.CopyAndFix(input, Unsafe.As<int[], byte[]>(ref value), length, sizeof(int));
         }
 
         private static void ConvertToShort(ref short value, ReadOnlySpan<byte> input, int length)
@@ -83,13 +73,8 @@ namespace Sally7.ValueConversion
         private static void ConvertToShortArray(ref short[]? value, ReadOnlySpan<byte> input, int length)
         {
             value ??= new short[length];
-            int i = 0;
 
-            while (!input.IsEmpty)
-            {
-                ConvertToShort(ref value[i++], input, 1);
-                input = input.Slice(sizeof(short));
-            }
+            BufferHelper.CopyAndFix(input, Unsafe.As<short[], byte[]>(ref value), length, sizeof(short));
         }
 
         private static void ConvertToByte(ref byte value, ReadOnlySpan<byte> input, int length)
@@ -99,7 +84,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new byte[length];
 
-            input.CopyTo(value);
+            BufferHelper.CopyAndFix(input, value, length, sizeof(byte));
         }
 
         private static void ConvertToBoolArray(ref bool[]? value, ReadOnlySpan<byte> input, int length)

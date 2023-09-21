@@ -61,7 +61,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return CopyBuffer(Unsafe.As<long[], byte[]>(ref value), output);
+            return BufferHelper.CopyAndFix(Unsafe.As<long[], byte[]>(ref value), output, length, sizeof(long));
         }
 
         private static int ConvertFromInt(int value, int length, Span<byte> output)
@@ -75,7 +75,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return CopyBuffer(Unsafe.As<int[], byte[]>(ref value), output);
+            return BufferHelper.CopyAndFix(Unsafe.As<int[], byte[]>(ref value), output, length, sizeof(int));
         }
 
         private static int ConvertFromShort(short value, int length, Span<byte> output)
@@ -89,7 +89,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return CopyBuffer(Unsafe.As<short[], byte[]>(ref value), output);
+            return BufferHelper.CopyAndFix(Unsafe.As<short[], byte[]>(ref value), output, length, sizeof(short));
         }
 
         private static int ConvertFromByte(byte value, int length, Span<byte> output)
@@ -103,7 +103,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return CopyBuffer(value, output);
+            return BufferHelper.CopyAndFix(value, output, length, sizeof(byte));
         }
 
         private static int ConvertFromBoolArray(bool[]? value, int length, Span<byte> output)
@@ -179,47 +179,6 @@ namespace Sally7.ValueConversion
 
             return span.Length + 2;
 #endif
-        }
-
-        private static int CopyBuffer(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            ref var destination = ref MemoryMarshal.GetReference(output);
-            ref var source = ref MemoryMarshal.GetReference(input);
-
-            var offset = 0u;
-            while (offset <= input.Length - sizeof(ulong))
-            {
-                var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
-                NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
-
-                offset += sizeof(ulong);
-            }
-
-            if (offset <= input.Length - sizeof(uint))
-            {
-                var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
-                NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
-
-                offset += sizeof(uint);
-            }
-
-            if (offset <= input.Length - sizeof(ushort))
-            {
-                var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
-                NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
-
-                offset += sizeof(ushort);
-            }
-
-            if (offset < input.Length)
-            {
-                var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
-                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
-
-                offset += sizeof(byte);
-            }
-
-            return (int)offset;
         }
     }
 }
