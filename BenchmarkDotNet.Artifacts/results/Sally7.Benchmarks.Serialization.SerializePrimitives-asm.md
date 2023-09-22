@@ -1,4 +1,4 @@
-## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
+## .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```assembly
 ; Sally7.Benchmarks.Serialization.SerializePrimitives.WriteUInt64()
        mov       rax,[rcx+10]
@@ -16,7 +16,7 @@ M00_L01:
 ; Total bytes of code 30
 ```
 
-## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
+## .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```assembly
 ; Sally7.Benchmarks.Serialization.SerializePrimitives.WriteUInt64ArrayIncrementOffset()
        push      rdi
@@ -36,7 +36,7 @@ M00_L00:
        lea       rcx,[rsp+28]
        mov       rax,[rsp+50]
        mov       rdx,[rax+8]
-       call      qword ptr [7FFD79FB1618]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayIncrementDestination(System.Span`1<Byte>, UInt64[])
+       call      qword ptr [7FFE6DEFB018]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayIncrementDestination(System.Span`1<Byte>, UInt64[])
        nop
        add       rsp,38
        pop       rsi
@@ -69,7 +69,7 @@ M01_L01:
 ; Total bytes of code 41
 ```
 
-## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
+## .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```assembly
 ; Sally7.Benchmarks.Serialization.SerializePrimitives.WriteUInt64ArrayCalculateOffset()
        push      rdi
@@ -89,7 +89,7 @@ M00_L00:
        lea       rcx,[rsp+28]
        mov       rax,[rsp+50]
        mov       rdx,[rax+8]
-       call      qword ptr [7FFD79FC1330]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayCalculateOffset(System.Span`1<Byte>, UInt64[])
+       call      qword ptr [7FFE6DEEB030]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayCalculateOffset(System.Span`1<Byte>, UInt64[])
        nop
        add       rsp,38
        pop       rsi
@@ -123,7 +123,7 @@ M01_L01:
 ; Total bytes of code 45
 ```
 
-## .NET 7.0.5 (7.0.523.17405), X64 RyuJIT AVX2
+## .NET 7.0.11 (7.0.1123.42427), X64 RyuJIT AVX2
 ```assembly
 ; Sally7.Benchmarks.Serialization.SerializePrimitives.WriteUInt64ArrayStoreOffset()
        push      rdi
@@ -143,7 +143,7 @@ M00_L00:
        lea       rcx,[rsp+28]
        mov       rax,[rsp+50]
        mov       rdx,[rax+8]
-       call      qword ptr [7FFD79FC1348]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayStoreOffset(System.Span`1<Byte>, UInt64[])
+       call      qword ptr [7FFE6DEEB048]; Sally7.Benchmarks.Serialization.SerializePrimitives+Converters.AppendUInt64ArrayStoreOffset(System.Span`1<Byte>, UInt64[])
        nop
        add       rsp,38
        pop       rsi
