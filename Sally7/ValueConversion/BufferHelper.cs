@@ -7,90 +7,101 @@ namespace Sally7.ValueConversion;
 
 internal class BufferHelper
 {
-    /// <summary>
-    /// Copies a buffer from input to output and reverses endianness if needed.
-    /// </summary>
-    /// <param name="input">The input buffer.</param>
-    /// <param name="output">The output buffer.</param>
-    /// <param name="numberOfItems">The number of items to copy.</param>
-    /// <param name="elementSize">The size of the elements to copy.</param>
-    /// <returns>The number of bytes copied.</returns>
-    public static int CopyAndFix(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems, int elementSize)
+    public static int CopyBytes(ReadOnlySpan<byte> input, Span<byte> output, int numberOfBytes)
     {
         ref var destination = ref MemoryMarshal.GetReference(output);
         ref var source = ref MemoryMarshal.GetReference(input);
 
         var offset = 0u;
-        var limit = numberOfItems * elementSize;
-        switch (elementSize)
+        while (offset <= numberOfBytes - sizeof(ulong))
         {
-            case sizeof(ulong):
-                while (offset <= limit - sizeof(ulong))
-                {
-                    var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
-                    NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
+            var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
+            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
 
-                    offset += sizeof(ulong);
-                }
+            offset += sizeof(ulong);
+        }
 
-                break;
-            case sizeof(uint):
-                while (offset <= limit - sizeof(uint))
-                {
-                    var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
-                    NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
+        if (offset <= input.Length - sizeof(uint))
+        {
+            var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
+            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
 
-                    offset += sizeof(uint);
-                }
+            offset += sizeof(uint);
+        }
 
-                break;
-            case sizeof(ushort):
-                while (offset <= limit - sizeof(ushort))
-                {
-                    var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
-                    NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
+        if (offset <= numberOfBytes - sizeof(ushort))
+        {
+            var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
 
-                    offset += sizeof(ushort);
-                }
+            offset += sizeof(ushort);
+        }
 
-                break;
+        if (offset < numberOfBytes)
+        {
+            var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
+            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
 
-            case sizeof(byte):
-                while (offset <= limit - sizeof(ulong))
-                {
-                    var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
-                    Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+            offset += sizeof(byte);
+        }
+        return (int)offset;
+    }
 
-                    offset += sizeof(ulong);
-                }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CopyAndAlign64Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
+    {
+        ref var destination = ref MemoryMarshal.GetReference(output);
+        ref var source = ref MemoryMarshal.GetReference(input);
 
-                if (offset <= input.Length - sizeof(uint))
-                {
-                    var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
-                    Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+        var limit = (uint) numberOfItems * sizeof(ulong);
 
-                    offset += sizeof(uint);
-                }
+        var offset = 0u;
+        while (offset < limit)
+        {
+            var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
+            NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset(offset), value);
 
-                if (offset <= limit - sizeof(ushort))
-                {
-                    var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
-                    Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+            offset += sizeof(ulong);
+        }
 
-                    offset += sizeof(ushort);
-                }
+        return (int)offset;
+    }
 
-                if (offset < limit)
-                {
-                    var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
-                    Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CopyAndAlign32Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
+    {
+        ref var destination = ref MemoryMarshal.GetReference(output);
+        ref var source = ref MemoryMarshal.GetReference(input);
 
-                    offset += sizeof(byte);
-                }
+        var limit = (uint) numberOfItems * sizeof(uint);
 
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(elementSize));
+        var offset = 0u;
+        while (offset < limit)
+        {
+            var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
+            NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset(offset), value);
+
+            offset += sizeof(uint);
+        }
+
+        return (int)offset;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CopyAndAlign16Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
+    {
+        ref var destination = ref MemoryMarshal.GetReference(output);
+        ref var source = ref MemoryMarshal.GetReference(input);
+
+        var limit = (uint) numberOfItems * sizeof(ushort);
+
+        var offset = 0u;
+        while (offset < limit)
+        {
+            var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+            NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
+
+            offset += sizeof(ushort);
         }
 
         return (int)offset;

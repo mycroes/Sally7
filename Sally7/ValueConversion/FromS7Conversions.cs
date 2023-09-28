@@ -54,7 +54,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new long[length];
 
-            BufferHelper.CopyAndFix(input, Unsafe.As<long[], byte[]>(ref value), length, sizeof(long));
+            BufferHelper.CopyAndAlign64Bit(input, Unsafe.As<long[], byte[]>(ref value), length);
         }
 
         private static void ConvertToInt(ref int value, ReadOnlySpan<byte> input, int length)
@@ -64,7 +64,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new int[length];
 
-            BufferHelper.CopyAndFix(input, Unsafe.As<int[], byte[]>(ref value), length, sizeof(int));
+            BufferHelper.CopyAndAlign32Bit(input, Unsafe.As<int[], byte[]>(ref value), length);
         }
 
         private static void ConvertToShort(ref short value, ReadOnlySpan<byte> input, int length)
@@ -74,7 +74,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new short[length];
 
-            BufferHelper.CopyAndFix(input, Unsafe.As<short[], byte[]>(ref value), length, sizeof(short));
+            BufferHelper.CopyAndAlign16Bit(input, Unsafe.As<short[], byte[]>(ref value), length);
         }
 
         private static void ConvertToByte(ref byte value, ReadOnlySpan<byte> input, int length)
@@ -84,7 +84,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new byte[length];
 
-            BufferHelper.CopyAndFix(input, value, length, sizeof(byte));
+            BufferHelper.CopyBytes(input, value, length);
         }
 
         private static void ConvertToBoolArray(ref bool[]? value, ReadOnlySpan<byte> input, int length)
