@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -9,7 +8,7 @@ using Sally7.Internal;
 
 namespace Sally7.Benchmarks.Serialization;
 
-public static class SerializePrimitivesAsLargerPrimitive
+public static class SerializeArray
 {
     public class SerializeUInt16
     {
@@ -48,6 +47,33 @@ public static class SerializePrimitivesAsLargerPrimitive
 
             return (int) offset;
         }
+
+        [Benchmark]
+        public int UsingUnsafeIsAddressLessThan()
+        {
+            ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
+
+            var size = Value.Length * sizeof(ushort);
+            ref var limit = ref source.GetOffset((uint)size);
+
+            while (Unsafe.IsAddressLessThan(ref source, ref limit))
+            {
+                var value = Unsafe.ReadUnaligned<ushort>(ref source);
+                NetworkOrderSerializer.WriteUInt16(ref destination, value);
+
+                source = ref source.GetOffset(sizeof(ushort));
+                destination = ref destination.GetOffset(sizeof(ushort));
+            }
+
+            return size;
+        }
+
+        [Benchmark]
+        public int UsingCopyAndAlign()
+        {
+            return CopyAndAlign16Bit(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()), buffer.AsSpan(), Value.Length);
+        }
     }
 
     private static int WriteUInt16(ref byte destination, ReadOnlySpan<ushort> values)
@@ -62,27 +88,23 @@ public static class SerializePrimitivesAsLargerPrimitive
         return offset;
     }
 
-    private static int WriteUInt32(ref byte destination, ReadOnlySpan<uint> values)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int CopyAndAlign16Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
     {
-        var offset = 0;
-        foreach (var value in values)
+        ref var destination = ref MemoryMarshal.GetReference(output);
+        ref var source = ref MemoryMarshal.GetReference(input);
+
+        var limit = (uint) numberOfItems * sizeof(ushort);
+
+        var offset = 0u;
+        while (offset < limit)
         {
-            NetworkOrderSerializer.WriteUInt32(ref destination.GetOffset((uint) offset), value);
-            offset += sizeof(uint);
+            var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+            NetworkOrderSerializer.WriteUInt16(ref destination.GetOffset(offset), value);
+
+            offset += sizeof(ushort);
         }
 
-        return offset;
-    }
-
-    private static int WriteUInt64(ref byte destination, ReadOnlySpan<ulong> values)
-    {
-        var offset = 0;
-        foreach (var value in values)
-        {
-            NetworkOrderSerializer.WriteUInt64(ref destination.GetOffset((uint) offset), value);
-            offset += sizeof(ulong);
-        }
-
-        return offset;
+        return (int)offset;
     }
 }
