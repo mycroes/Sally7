@@ -3,7 +3,9 @@ using System.Buffers.Binary;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET5_0_OR_GREATER
 using System.Runtime.Intrinsics;
+#endif
 using BenchmarkDotNet.Attributes;
 using Sally7.Internal;
 using Sally7.Protocol.S7.Messages;
@@ -35,12 +37,14 @@ namespace Sally7.Benchmarks.Serialization
             return WriteLongThenShort(ref start, 10, 20);
         }
 
+        #if NET5_0_OR_GREATER
         [Benchmark]
         public uint WriteVector128()
         {
             ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
             return WriteVector128(ref start, 10, 20);
         }
+        #endif
 
         [Benchmark]
         public uint WriteArray()
@@ -91,6 +95,7 @@ namespace Sally7.Benchmarks.Serialization
             return 10;
         }
 
+        #if NET5_0_OR_GREATER
         public static uint WriteVector128(ref byte destination, int paramLength, int dataLength)
         {
             var vec = Vector128.Create((byte)0x32, (byte)MessageType.JobRequest, 0, 0, 1, 0, (byte)(paramLength >> 8),
@@ -99,6 +104,7 @@ namespace Sally7.Benchmarks.Serialization
 
             return 10;
         }
+        #endif
 
         public static unsafe uint WriteArray(ref byte destination, int paramLength, int dataLength)
         {
