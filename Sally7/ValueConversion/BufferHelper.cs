@@ -7,46 +7,6 @@ namespace Sally7.ValueConversion;
 
 internal class BufferHelper
 {
-    public static int CopyBytes(ReadOnlySpan<byte> input, Span<byte> output, int numberOfBytes)
-    {
-        ref var destination = ref MemoryMarshal.GetReference(output);
-        ref var source = ref MemoryMarshal.GetReference(input);
-
-        var offset = 0u;
-        while (offset <= numberOfBytes - sizeof(ulong))
-        {
-            var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
-            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
-
-            offset += sizeof(ulong);
-        }
-
-        if (offset <= input.Length - sizeof(uint))
-        {
-            var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
-            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
-
-            offset += sizeof(uint);
-        }
-
-        if (offset <= numberOfBytes - sizeof(ushort))
-        {
-            var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
-            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
-
-            offset += sizeof(ushort);
-        }
-
-        if (offset < numberOfBytes)
-        {
-            var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
-            Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
-
-            offset += sizeof(byte);
-        }
-        return (int)offset;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int CopyAndAlign64Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
     {

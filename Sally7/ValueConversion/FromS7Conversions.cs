@@ -84,7 +84,7 @@ namespace Sally7.ValueConversion
         {
             value ??= new byte[length];
 
-            BufferHelper.CopyBytes(input, value, length);
+            input.CopyTo(value);
         }
 
         private static void ConvertToBoolArray(ref bool[]? value, ReadOnlySpan<byte> input, int length)

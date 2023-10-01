@@ -103,7 +103,9 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return BufferHelper.CopyBytes(value, output, length);
+            value.AsSpan().CopyTo(output);
+
+            return length;
         }
 
         private static int ConvertFromBoolArray(bool[]? value, int length, Span<byte> output)
