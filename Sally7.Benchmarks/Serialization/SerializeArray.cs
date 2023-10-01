@@ -10,6 +10,73 @@ namespace Sally7.Benchmarks.Serialization;
 
 public static class SerializeArray
 {
+    public class SerializeByte
+    {
+        private readonly byte[] buffer = new byte[1024];
+
+        [ParamsSource(nameof(ValueParameters))]
+        public byte[] Value { get; set; } = Array.Empty<byte>();
+
+        public IEnumerable<byte[]> ValueParameters =>
+            "1,2,4,8,16,24,32,64".Split(',').Select(int.Parse)
+                .Select(len => Enumerable.Range(1, len).Select(x => (byte)x).ToArray());
+
+        [Benchmark(Baseline = true)]
+        public int SpanCopyTo()
+        {
+            Value.AsSpan().CopyTo(buffer.AsSpan());
+
+            return Value.Length;
+        }
+
+        [Benchmark]
+        public int CopyUsingLargerPrimitives()
+        {
+            return CopyBytes(Value, buffer);
+        }
+
+        private static int CopyBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            ref var destination = ref MemoryMarshal.GetReference(output);
+            ref var source = ref MemoryMarshal.GetReference(input);
+
+            var offset = 0u;
+            while (offset <= input.Length - sizeof(ulong))
+            {
+                var value = Unsafe.ReadUnaligned<ulong>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(ulong);
+            }
+
+            if (offset <= input.Length - sizeof(uint))
+            {
+                var value = Unsafe.ReadUnaligned<uint>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(uint);
+            }
+
+            if (offset <= input.Length - sizeof(ushort))
+            {
+                var value = Unsafe.ReadUnaligned<ushort>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(ushort);
+            }
+
+            if (offset < input.Length)
+            {
+                var value = Unsafe.ReadUnaligned<byte>(ref source.GetOffset(offset));
+                Unsafe.WriteUnaligned(ref destination.GetOffset(offset), value);
+
+                offset += sizeof(byte);
+            }
+
+            return (int)offset;
+        }
+    }
+
     public class SerializeUInt16
     {
         private readonly byte[] buffer = new byte[1024];
