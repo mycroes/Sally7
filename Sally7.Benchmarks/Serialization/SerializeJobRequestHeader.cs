@@ -3,11 +3,14 @@ using System.Buffers.Binary;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if NET7_0_OR_GREATER
+using System.Runtime.Intrinsics;
+#endif
 using BenchmarkDotNet.Attributes;
 using Sally7.Internal;
 using Sally7.Protocol.S7.Messages;
 
-namespace Sally7.Benchmarks
+namespace Sally7.Benchmarks.Serialization
 {
     public class SerializeJobRequestHeader
     {
@@ -18,7 +21,7 @@ namespace Sally7.Benchmarks
 
         private static ulong JobRequestHeaderLong = 0x32L << 56 | (long)MessageType.JobRequest << 48 | PduRef << 16;
 
-        private readonly byte[] buffer = new byte[10];
+        private readonly byte[] buffer = new byte[16];
 
         [Benchmark(Baseline = true)]
         public uint WriteFieldsOneByOne()
@@ -33,6 +36,15 @@ namespace Sally7.Benchmarks
             ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
             return WriteLongThenShort(ref start, 10, 20);
         }
+
+        #if NET7_0_OR_GREATER
+        [Benchmark]
+        public uint WriteVector128()
+        {
+            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            return WriteVector128(ref start, 10, 20);
+        }
+        #endif
 
         [Benchmark]
         public uint WriteArray()
@@ -52,7 +64,7 @@ namespace Sally7.Benchmarks
         public void VerifyBuffer()
         {
             byte[] expected = { 0x32, 1, 0, 0, 1, 0, 0, 10, 0, 20 };
-            if (!buffer.SequenceEqual(expected))
+            if (!buffer.Take(10).SequenceEqual(expected))
             {
                 throw new Exception($"""
                     Buffer contents are invalid.
@@ -74,7 +86,7 @@ namespace Sally7.Benchmarks
 
         public static uint WriteLongThenShort(ref byte destination, int paramLength, int dataLength)
         {
-            var header = JobRequestHeaderLong | (ushort) paramLength;
+            var header = JobRequestHeaderLong | (ushort)paramLength;
 
             Unsafe.WriteUnaligned(ref destination,
                     BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(header) : header);
@@ -82,6 +94,17 @@ namespace Sally7.Benchmarks
 
             return 10;
         }
+
+        #if NET7_0_OR_GREATER
+        public static uint WriteVector128(ref byte destination, int paramLength, int dataLength)
+        {
+            var vec = Vector128.Create((byte)0x32, (byte)MessageType.JobRequest, 0, 0, 1, 0, (byte)(paramLength >> 8),
+                (byte)(paramLength), (byte)(dataLength >> 8), (byte)(dataLength), 0, 0, 0, 0, 0, 0);
+            vec.StoreUnsafe(ref destination);
+
+            return 10;
+        }
+        #endif
 
         public static unsafe uint WriteArray(ref byte destination, int paramLength, int dataLength)
         {

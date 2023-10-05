@@ -22,8 +22,8 @@ namespace Sally7
             Assertions.AssertDataItemLengthIsValidForType(length, typeof(TValue));
             Assertions.AssertBitIsValidForType(bit, typeof(TValue));
 
-            toS7Converter = ConverterFactory.GetToPlcConverter<TValue>();
-            fromS7Converter = ConverterFactory.GetFromPlcConverter<TValue>();
+            toS7Converter = ConverterFactory.GetToPlcConverter<TValue>(length);
+            fromS7Converter = ConverterFactory.GetFromPlcConverter<TValue>(length);
             var elementSize = ConversionHelper.GetElementSize<TValue>();
 
             DbNumber = dbNumber;

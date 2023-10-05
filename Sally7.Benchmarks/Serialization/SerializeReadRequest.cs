@@ -6,9 +6,9 @@ using BenchmarkDotNet.Attributes;
 using Sally7.Protocol;
 using Sally7.Protocol.S7;
 
-namespace Sally7.Benchmarks;
+namespace Sally7.Benchmarks.Serialization;
 
-public class Serialization
+public class SerializeReadRequest
 {
     private readonly byte[] buffer = new byte[31];
 
@@ -56,34 +56,34 @@ public class Serialization
         var span = buffer.AsSpan();
         ref var start = ref MemoryMarshal.GetReference(span);
         // TPKT
-        Unsafe.WriteUnaligned(ref start, (byte) 3);
+        Unsafe.WriteUnaligned(ref start, (byte)3);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 1), 0);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 2),
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)31) : (ushort)31);
 
         // Data
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 4), (byte) 2);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 5), (byte) 0b1111_0000);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 6), (byte) 0b1_000_0000);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 4), (byte)2);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 5), (byte)0b1111_0000);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 6), (byte)0b1_000_0000);
 
         // S7 header
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 7), (byte) 0x32);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 8), (byte) MessageType.JobRequest);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 9), (ushort) 0);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 11), (ushort) 0x0101);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 7), (byte)0x32);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 8), (byte)MessageType.JobRequest);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 9), (ushort)0);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 11), (ushort)0x0101);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 13),
-            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort) 14) : (ushort) 14);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 15), (ushort) 0);
+            BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)14) : (ushort)14);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 15), (ushort)0);
 
         // Read request
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 17), (byte) FunctionCode.Read);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 18), (byte) 1);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 17), (byte)FunctionCode.Read);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 18), (byte)1);
 
         // Request item
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 19), (byte) 0x12);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 20), (byte) 10);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 21), (byte) AddressingMode.S7Any);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 22), (byte) VariableType.Byte);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 19), (byte)0x12);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 20), (byte)10);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 21), (byte)AddressingMode.S7Any);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 22), (byte)VariableType.Byte);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 23),
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)2) : (ushort)2);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 25),
@@ -92,7 +92,7 @@ public class Serialization
         // and overwrite the first byte afterwards.
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27),
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(20u) : 20u);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27), (byte) Area.DataBlock);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27), (byte)Area.DataBlock);
     }
 
     [Benchmark]
@@ -120,17 +120,17 @@ public class Serialization
             BitConverter.IsLittleEndian
                 ? BinaryPrimitives.ReverseEndianness(jobRequestHeaderWithParamLength)
                 : jobRequestHeaderWithParamLength);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 15), (ushort) 0);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 15), (ushort)0);
 
         // Read request
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 17), (byte) FunctionCode.Read);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 18), (byte) 1);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 17), (byte)FunctionCode.Read);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 18), (byte)1);
 
         // Request item
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 19), (byte) 0x12);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 20), (byte) 10);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 21), (byte) AddressingMode.S7Any);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 22), (byte) VariableType.Byte);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 19), (byte)0x12);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 20), (byte)10);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 21), (byte)AddressingMode.S7Any);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 22), (byte)VariableType.Byte);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 23),
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness((ushort)2) : (ushort)2);
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 25),
@@ -139,7 +139,7 @@ public class Serialization
         // and overwrite the first byte afterwards.
         Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27),
             BitConverter.IsLittleEndian ? BinaryPrimitives.ReverseEndianness(20u) : 20u);
-        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27), (byte) Area.DataBlock);
+        Unsafe.WriteUnaligned(ref Unsafe.Add(ref start, 27), (byte)Area.DataBlock);
     }
 
     [Benchmark]
