@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Sally7.ValueConversion;
 
-internal class BufferHelper
+internal static class BufferHelper
 {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int CopyAndAlign64Bit(ReadOnlySpan<byte> input, Span<byte> output, int numberOfItems)
