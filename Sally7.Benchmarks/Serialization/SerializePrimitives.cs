@@ -9,32 +9,32 @@ namespace Sally7.Benchmarks.Serialization
 {
     public class SerializePrimitives
     {
-        private readonly ulong value = 0x0102030405060708;
-        private readonly ulong[] arrayValue = { 0x0102030405060708, 0x0807060504030201 };
-        private readonly byte[] buffer = new byte[1024];
+        private readonly ulong _value = 0x0102030405060708;
+        private readonly ulong[] _arrayValue = { 0x0102030405060708, 0x0807060504030201 };
+        private readonly byte[] _buffer = new byte[1024];
 
         [Benchmark]
         public void WriteUInt64()
         {
-            Converters.AppendUInt64(buffer, value);
+            Converters.AppendUInt64(_buffer, _value);
         }
 
         [Benchmark]
         public void WriteUInt64ArrayIncrementOffset()
         {
-            Converters.AppendUInt64ArrayIncrementDestination(buffer, arrayValue);
+            Converters.AppendUInt64ArrayIncrementDestination(_buffer, _arrayValue);
         }
 
         [Benchmark]
         public void WriteUInt64ArrayCalculateOffset()
         {
-            Converters.AppendUInt64ArrayCalculateOffset(buffer, arrayValue);
+            Converters.AppendUInt64ArrayCalculateOffset(_buffer, _arrayValue);
         }
 
         [Benchmark]
         public void WriteUInt64ArrayStoreOffset()
         {
-            Converters.AppendUInt64ArrayStoreOffset(buffer, arrayValue);
+            Converters.AppendUInt64ArrayStoreOffset(_buffer, _arrayValue);
         }
 
         public static class Converters

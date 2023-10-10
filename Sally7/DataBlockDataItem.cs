@@ -8,9 +8,9 @@ namespace Sally7
 {
     public class DataBlockDataItem<TValue> : IDataItem<TValue>
     {
-        private readonly ConvertToS7<TValue> toS7Converter;
-        private readonly ConvertFromS7<TValue> fromS7Converter;
-        private TValue? value;
+        private readonly ConvertToS7<TValue> _toS7Converter;
+        private readonly ConvertFromS7<TValue> _fromS7Converter;
+        private TValue? _value;
 
         public DataBlockDataItem(BigEndianShort dbNumber, int startByte, int length = 1) : this(dbNumber, startByte, 0,
             length)
@@ -22,8 +22,8 @@ namespace Sally7
             Assertions.AssertDataItemLengthIsValidForType(length, typeof(TValue));
             Assertions.AssertBitIsValidForType(bit, typeof(TValue));
 
-            toS7Converter = ConverterFactory.GetToPlcConverter<TValue>(length);
-            fromS7Converter = ConverterFactory.GetFromPlcConverter<TValue>(length);
+            _toS7Converter = ConverterFactory.GetToPlcConverter<TValue>(length);
+            _fromS7Converter = ConverterFactory.GetFromPlcConverter<TValue>(length);
             var elementSize = ConversionHelper.GetElementSize<TValue>();
 
             DbNumber = dbNumber;
@@ -65,8 +65,8 @@ namespace Sally7
 
         public TValue? Value
         {
-            get => value;
-            set => this.value = value;
+            get => _value;
+            set => this._value = value;
         }
 
         public Address Address { get; }
@@ -75,8 +75,8 @@ namespace Sally7
         public TransportSize TransportSize { get; }
         public VariableType VariableType { get; }
 
-        int IDataItem.WriteValue(Span<byte> output) => toS7Converter.Invoke(Value, Length, output);
+        int IDataItem.WriteValue(Span<byte> output) => _toS7Converter.Invoke(Value, Length, output);
 
-        void IDataItem.ReadValue(ReadOnlySpan<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
+        void IDataItem.ReadValue(ReadOnlySpan<byte> input) => _fromS7Converter.Invoke(ref _value, input, Length);
     }
 }

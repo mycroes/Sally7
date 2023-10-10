@@ -9,18 +9,18 @@ namespace Sally7.Tests.Protocol;
 
 internal class CommunicationSequence
 {
-    private readonly List<(byte[], byte[])> sequence = new();
+    private readonly List<(byte[], byte[])> _sequence = new();
 
-    private readonly ITestOutputHelper output;
+    private readonly ITestOutputHelper _output;
 
     public CommunicationSequence(ITestOutputHelper output)
     {
-        this.output = output;
+        this._output = output;
     }
 
     public CommunicationSequence AddCall(byte[] request, byte[] response)
     {
-        sequence.Add((request, response));
+        _sequence.Add((request, response));
 
         return this;
     }
@@ -299,15 +299,15 @@ internal class CommunicationSequence
             var buffer = ArrayPool<byte>.Shared.Rent(1024);
             try
             {
-                foreach (var (request, response) in sequence)
+                foreach (var (request, response) in _sequence)
                 {
                     var bytesReceived = await socketIn.ReceiveAsync(buffer, SocketFlags.None);
 
                     var received = buffer.Take(bytesReceived).ToArray();
-                    output.WriteLine($"=> {BitConverter.ToString(received)}");
+                    _output.WriteLine($"=> {BitConverter.ToString(received)}");
                     received.ShouldBe(request);
 
-                    output.WriteLine($"<= {BitConverter.ToString(response)}");
+                    _output.WriteLine($"<= {BitConverter.ToString(response)}");
                     socketIn.Send(response);
                 }
             }

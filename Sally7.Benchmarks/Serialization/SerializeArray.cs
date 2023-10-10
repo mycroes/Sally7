@@ -12,7 +12,7 @@ public static class SerializeArray
 {
     public class SerializeByte
     {
-        private readonly byte[] buffer = new byte[1024];
+        private readonly byte[] _buffer = new byte[1024];
 
         [ParamsSource(nameof(ValueParameters))]
         public byte[] Value { get; set; } = Array.Empty<byte>();
@@ -24,7 +24,7 @@ public static class SerializeArray
         [Benchmark(Baseline = true)]
         public int SpanCopyTo()
         {
-            Value.AsSpan().CopyTo(buffer.AsSpan());
+            Value.AsSpan().CopyTo(_buffer.AsSpan());
 
             return Value.Length;
         }
@@ -32,7 +32,7 @@ public static class SerializeArray
         [Benchmark]
         public int CopyUsingLargerPrimitives()
         {
-            return CopyBytes(Value, buffer);
+            return CopyBytes(Value, _buffer);
         }
 
         private static int CopyBytes(ReadOnlySpan<byte> input, Span<byte> output)
@@ -79,7 +79,7 @@ public static class SerializeArray
 
     public class SerializeUInt16
     {
-        private readonly byte[] buffer = new byte[1024];
+        private readonly byte[] _buffer = new byte[1024];
 
         [ParamsSource(nameof(ValueParameters))]
         public ushort[] Value { get; set; } = Array.Empty<ushort>();
@@ -90,7 +90,7 @@ public static class SerializeArray
         [Benchmark(Baseline = true)]
         public int SerializeOneByOne()
         {
-            ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var destination = ref MemoryMarshal.GetReference(_buffer.AsSpan());
 
             WriteUInt16(ref destination, Value);
 
@@ -100,7 +100,7 @@ public static class SerializeArray
         [Benchmark]
         public int UsingUnsafeReadUnaligned()
         {
-            ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var destination = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
 
             var offset = 0u;
@@ -118,7 +118,7 @@ public static class SerializeArray
         [Benchmark]
         public int UsingUnsafeIsAddressLessThan()
         {
-            ref var destination = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var destination = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             ref var source = ref MemoryMarshal.GetReference(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()));
 
             var size = Value.Length * sizeof(ushort);
@@ -139,7 +139,7 @@ public static class SerializeArray
         [Benchmark]
         public int UsingCopyAndAlign()
         {
-            return CopyAndAlign16Bit(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()), buffer.AsSpan(), Value.Length);
+            return CopyAndAlign16Bit(MemoryMarshal.Cast<ushort, byte>(Value.AsSpan()), _buffer.AsSpan(), Value.Length);
         }
     }
 
