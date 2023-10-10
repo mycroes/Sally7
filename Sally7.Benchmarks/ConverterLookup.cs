@@ -8,12 +8,12 @@ namespace Sally7.Benchmarks
     [ShortRunJob]
     public class ConverterLookup
     {
-        private readonly DataItemWithConverter<int> withConverter =
+        private readonly DataItemWithConverter<int> _withConverter =
             new DataItemWithConverter<int>(b => b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3]);
 
-        private readonly DataItemWithValue<int> withValue = new DataItemWithValue<int>();
+        private readonly DataItemWithValue<int> _withValue = new DataItemWithValue<int>();
 
-        private readonly Dictionary<Type, IConverter> typeToConverterLookup =
+        private readonly Dictionary<Type, IConverter> _typeToConverterLookup =
             new Dictionary<Type, IConverter>
             {
                 {typeof(bool), new Int32Converter()},
@@ -23,7 +23,7 @@ namespace Sally7.Benchmarks
                 {typeof(string), new Int32Converter()}
             };
 
-        private readonly Dictionary<int, IConverter> metadataTokenToConverterLookup =
+        private readonly Dictionary<int, IConverter> _metadataTokenToConverterLookup =
             new Dictionary<int, IConverter>
             {
                 {typeof(bool).MetadataToken, new Int32Converter()},
@@ -34,12 +34,12 @@ namespace Sally7.Benchmarks
             };
 
         // Type converters
-        private readonly IConverter boolConverter = new Int32Converter();
-        private readonly IConverter shortConverter = new Int32Converter();
-        private readonly IConverter floatConverter = new Int32Converter();
-        private readonly IConverter stringConverter = new Int32Converter();
+        private readonly IConverter _boolConverter = new Int32Converter();
+        private readonly IConverter _shortConverter = new Int32Converter();
+        private readonly IConverter _floatConverter = new Int32Converter();
+        private readonly IConverter _stringConverter = new Int32Converter();
 
-        private readonly Int32Converter intConverter = new Int32Converter();
+        private readonly Int32Converter _intConverter = new Int32Converter();
 
         public ConverterLookup()
         {
@@ -66,57 +66,57 @@ namespace Sally7.Benchmarks
         [Benchmark]
         public int UsingDataItemWithConverter()
         {
-            withConverter.ApplyValue(Message);
-            return withConverter.Value;
+            _withConverter.ApplyValue(Message);
+            return _withConverter.Value;
         }
 
         [Benchmark]
         public int WithTypeLookup()
         {
-            typeToConverterLookup[withValue.ValueType].Apply(Message, withValue);
-            return withValue.Value;
+            _typeToConverterLookup[_withValue.ValueType].Apply(Message, _withValue);
+            return _withValue.Value;
         }
 
         [Benchmark]
         public int WithMetadataTokenLookup()
         {
-            metadataTokenToConverterLookup[withValue.ValueType.MetadataToken].Apply(Message, withValue);
-            return withValue.Value;
+            _metadataTokenToConverterLookup[_withValue.ValueType.MetadataToken].Apply(Message, _withValue);
+            return _withValue.Value;
         }
 
         [Benchmark]
         public int WithIfElseLookup()
         {
-            IfElseLookup(withValue.ValueType).Apply(Message, withValue);
-            return withValue.Value;
+            IfElseLookup(_withValue.ValueType).Apply(Message, _withValue);
+            return _withValue.Value;
         }
 
         [Benchmark]
         public int WithConvertUsingIfElseLookup()
         {
-            ConvertUsingIfElseLookup(Message, withValue);
-            return withValue.Value;
+            ConvertUsingIfElseLookup(Message, _withValue);
+            return _withValue.Value;
         }
 
         [Benchmark]
         public int WithTypeSwitchConvert()
         {
-            TypeSwitchConvert(Message, withValue);
-            return withValue.Value;
+            TypeSwitchConvert(Message, _withValue);
+            return _withValue.Value;
         }
 
         private IConverter IfElseLookup(Type type)
         {
             if (type == typeof(bool))
-                return boolConverter;
+                return _boolConverter;
             if (type == typeof(short))
-                return shortConverter;
+                return _shortConverter;
             if (type == typeof(int))
-                return intConverter;
+                return _intConverter;
             if (type == typeof(float))
-                return floatConverter;
+                return _floatConverter;
             if (type == typeof(string))
-                return stringConverter;
+                return _stringConverter;
 
             throw new ArgumentException($"Type {type} not supported.");
         }
@@ -126,15 +126,15 @@ namespace Sally7.Benchmarks
             var type = dataItem.ValueType;
 
             if (type == typeof(bool))
-                boolConverter.Apply(message, dataItem);
+                _boolConverter.Apply(message, dataItem);
             else if (type == typeof(short))
-                shortConverter.Apply(message, dataItem);
+                _shortConverter.Apply(message, dataItem);
             else if (type == typeof(int))
-                intConverter.Apply(message, dataItem);
+                _intConverter.Apply(message, dataItem);
             else if (type == typeof(float))
-                floatConverter.Apply(message, dataItem);
+                _floatConverter.Apply(message, dataItem);
             else if (type == typeof(string))
-                stringConverter.Apply(message, dataItem);
+                _stringConverter.Apply(message, dataItem);
             else
                 throw new ArgumentException($"Type {type} not supported.");
         }
@@ -195,18 +195,18 @@ namespace Sally7.Benchmarks
 
         private class DataItemWithConverter<T>
         {
-            private readonly Func<byte[], T> converter;
+            private readonly Func<byte[], T> _converter;
 
             public DataItemWithConverter(Func<byte[], T> converter)
             {
-                this.converter = converter;
+                this._converter = converter;
             }
 
             public T? Value { get; set; }
 
             public void ApplyValue(byte[] message)
             {
-                Value = converter(message);
+                Value = _converter(message);
             }
         }
     }

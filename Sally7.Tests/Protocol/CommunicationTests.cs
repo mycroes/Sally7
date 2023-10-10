@@ -7,11 +7,11 @@ namespace Sally7.Tests.Protocol;
 
 public class CommunicationTests
 {
-    private readonly ITestOutputHelper output;
+    private readonly ITestOutputHelper _output;
 
     public CommunicationTests(ITestOutputHelper output)
     {
-        this.output = output;
+        this._output = output;
     }
 
     [Fact]
@@ -20,7 +20,7 @@ public class CommunicationTests
         var sourceTsap = new Tsap(201, 202);
         var destinationTsap = new Tsap(203, 204);
 
-        var communication = new CommunicationSequence(output)
+        var communication = new CommunicationSequence(_output)
             .AddConnectRequest(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap)
             .AddCommunicationSetup();
 
@@ -41,7 +41,7 @@ public class CommunicationTests
         var destinationTsap = new Tsap(203, 204);
         var dataItem = new DataBlockDataItem<short>(9, 6);
 
-        var communication = new CommunicationSequence(output)
+        var communication = new CommunicationSequence(_output)
             .AddConnectRequest(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap)
             .AddCommunicationSetup()
             .AddRead(Area.DataBlock, 9, 6 << 3, 2, TransportSize.Byte, VariableType.Byte, new byte[] { 2, 1});
@@ -65,7 +65,7 @@ public class CommunicationTests
         var destinationTsap = new Tsap(203, 204);
         var dataItem = new DataBlockDataItem<short>(9, 6) { Value = 513 };
 
-        var communication = new CommunicationSequence(output)
+        var communication = new CommunicationSequence(_output)
             .AddConnectRequest(PduSizeParameter.PduSize.Pdu1024, sourceTsap, destinationTsap).AddCommunicationSetup()
             .AddWrite(Area.DataBlock, 9, 6 << 3, 2, TransportSize.Byte, VariableType.Byte, new byte[] { 2, 1 });
 

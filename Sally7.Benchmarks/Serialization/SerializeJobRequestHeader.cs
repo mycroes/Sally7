@@ -21,19 +21,19 @@ namespace Sally7.Benchmarks.Serialization
 
         private static ulong JobRequestHeaderLong = 0x32L << 56 | (long)MessageType.JobRequest << 48 | PduRef << 16;
 
-        private readonly byte[] buffer = new byte[16];
+        private readonly byte[] _buffer = new byte[16];
 
         [Benchmark(Baseline = true)]
         public uint WriteFieldsOneByOne()
         {
-            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             return WriteFieldsOneByOne(ref start, 10, 20);
         }
 
         [Benchmark]
         public uint WriteLongThenShort()
         {
-            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             return WriteLongThenShort(ref start, 10, 20);
         }
 
@@ -41,7 +41,7 @@ namespace Sally7.Benchmarks.Serialization
         [Benchmark]
         public uint WriteVector128()
         {
-            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             return WriteVector128(ref start, 10, 20);
         }
         #endif
@@ -49,14 +49,14 @@ namespace Sally7.Benchmarks.Serialization
         [Benchmark]
         public uint WriteArray()
         {
-            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             return WriteArray(ref start, 10, 20);
         }
 
         [Benchmark]
         public uint WriteStruct()
         {
-            ref var start = ref MemoryMarshal.GetReference(buffer.AsSpan());
+            ref var start = ref MemoryMarshal.GetReference(_buffer.AsSpan());
             return WriteStruct(ref start, 10, 20);
         }
 
@@ -64,12 +64,12 @@ namespace Sally7.Benchmarks.Serialization
         public void VerifyBuffer()
         {
             byte[] expected = { 0x32, 1, 0, 0, 1, 0, 0, 10, 0, 20 };
-            if (!buffer.Take(10).SequenceEqual(expected))
+            if (!_buffer.Take(10).SequenceEqual(expected))
             {
                 throw new Exception($"""
                     Buffer contents are invalid.
                     Expected: {BitConverter.ToString(expected)}
-                    Received: {BitConverter.ToString(buffer)}
+                    Received: {BitConverter.ToString(_buffer)}
                     """);
             }
         }

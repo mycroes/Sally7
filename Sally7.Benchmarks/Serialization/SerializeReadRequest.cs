@@ -10,12 +10,12 @@ namespace Sally7.Benchmarks.Serialization;
 
 public class SerializeReadRequest
 {
-    private readonly byte[] buffer = new byte[31];
+    private readonly byte[] _buffer = new byte[31];
 
     [Benchmark]
     public void MemoryMarshal_Cast()
     {
-        var span = buffer.AsSpan();
+        var span = _buffer.AsSpan();
 
         ref var tpkt = ref MemoryMarshal.Cast<byte, Tpkt>(span)[0];
         tpkt.Version = 3;
@@ -53,7 +53,7 @@ public class SerializeReadRequest
     [Benchmark]
     public void Unsafe_WriteUnaligned()
     {
-        var span = buffer.AsSpan();
+        var span = _buffer.AsSpan();
         ref var start = ref MemoryMarshal.GetReference(span);
         // TPKT
         Unsafe.WriteUnaligned(ref start, (byte)3);
@@ -102,7 +102,7 @@ public class SerializeReadRequest
         const uint data = 2 << 24 | 0b1111_0000 << 16 | 0b1_000_0000;
         const ulong jobRequestHeader = 0x32L << 56 | (ulong)MessageType.JobRequest << 48 | 0x0101 << 16;
 
-        var span = buffer.AsSpan();
+        var span = _buffer.AsSpan();
         ref var start = ref MemoryMarshal.GetReference(span);
 
         // TPKT
@@ -145,7 +145,7 @@ public class SerializeReadRequest
     [Benchmark]
     public void Unsafe_As_Struct()
     {
-        var span = buffer.AsSpan();
+        var span = _buffer.AsSpan();
         ref var start = ref MemoryMarshal.GetReference(span);
         ref var tpkt = ref Unsafe.As<byte, Tpkt>(ref start);
         tpkt.Version = 3;
@@ -245,7 +245,7 @@ public class SerializeReadRequest
     private enum AddressingMode : byte
     {
         S7Any = 0x10, // S7-Any pointer (regular addressing) memory+variable length+offset
-        DriveES = 0xa2, // Drive-ES-Any seen on Drive ES Starter with routing over S7
+        DriveEs = 0xa2, // Drive-ES-Any seen on Drive ES Starter with routing over S7
         SubItem = 0xb0, // Special DB addressing for S400 (subitem read/write)
         Symbolic = 0xb2 // S1200/S1500? Symbolic addressing mode
     }

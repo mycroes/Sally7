@@ -9,7 +9,7 @@ namespace Sally7.Internal
     {
         private const int TpktSize = 4;
 
-        private readonly Socket socket;
+        private readonly Socket _socket;
 
         private static int GetTpktLength(ReadOnlySpan<byte> span)
         {

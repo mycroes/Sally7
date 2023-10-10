@@ -25,24 +25,24 @@ namespace Sally7
         /// </summary>
         public const int DefaultPort = 102;
 
-        private readonly string host;
-        private readonly int port = DefaultPort;
-        private readonly Tsap sourceTsap;
-        private readonly Tsap destinationTsap;
-        private readonly RequestExecutorFactory executorFactory;
+        private readonly string _host;
+        private readonly int _port = DefaultPort;
+        private readonly Tsap _sourceTsap;
+        private readonly Tsap _destinationTsap;
+        private readonly RequestExecutorFactory _executorFactory;
 
-        private int bufferSize;
-        private MemoryPool<byte>? memoryPool;
-        private IRequestExecutor? requestExecutor;
+        private int _bufferSize;
+        private MemoryPool<byte>? _memoryPool;
+        private IRequestExecutor? _requestExecutor;
 
         public static RequestExecutorFactory DefaultRequestExecutorFactory { get; set; } =
-            conn => new ConcurrentRequestExecutor(conn, conn.memoryPool);
+            conn => new ConcurrentRequestExecutor(conn, conn._memoryPool);
 
         public TcpClient TcpClient { get; } = new() {NoDelay = true};
 
         public IS7ConnectionParameters? Parameters { get; private set; }
 
-        private TimeSpan requestTimeout = DefaultRequestTimeout;
+        private TimeSpan _requestTimeout = DefaultRequestTimeout;
 
         /// <summary>
         /// Gets or sets the timeout for performing requests.
@@ -55,12 +55,12 @@ namespace Sally7
         /// </exception>
         public TimeSpan RequestTimeout
         {
-            get => requestTimeout;
+            get => _requestTimeout;
             set
             {
                 Assertions.AssertTimeoutIsValid(value);
 
-                requestTimeout = value;
+                _requestTimeout = value;
             }
         }
 
@@ -79,11 +79,11 @@ namespace Sally7
         /// </param>
         public S7Connection(string host, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default, RequestExecutorFactory? executorFactory = default)
         {
-            this.host = host;
-            this.sourceTsap = sourceTsap;
-            this.destinationTsap = destinationTsap;
-            this.memoryPool = memoryPool;
-            this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+            this._host = host;
+            this._sourceTsap = sourceTsap;
+            this._destinationTsap = destinationTsap;
+            this._memoryPool = memoryPool;
+            this._executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
 
         /// <summary>
@@ -103,12 +103,12 @@ namespace Sally7
         public S7Connection(string host, int port, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default,
             RequestExecutorFactory? executorFactory = default)
         {
-            this.host = host;
-            this.port = port;
-            this.sourceTsap = sourceTsap;
-            this.destinationTsap = destinationTsap;
-            this.memoryPool = memoryPool;
-            this.executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+            this._host = host;
+            this._port = port;
+            this._sourceTsap = sourceTsap;
+            this._destinationTsap = destinationTsap;
+            this._memoryPool = memoryPool;
+            this._executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
 
         /// <summary>
@@ -133,9 +133,9 @@ namespace Sally7
         public void Dispose()
         {
             TcpClient.Dispose();
-            requestExecutor?.Dispose();
+            _requestExecutor?.Dispose();
 
-            if (memoryPool is Sally7MemoryPool mp)
+            if (_memoryPool is Sally7MemoryPool mp)
             {
                 mp.Dispose();
             }
@@ -155,10 +155,10 @@ namespace Sally7
                     linkedToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, TcpClient.Client);
 
 #if NET5_0_OR_GREATER
-                await TcpClient.ConnectAsync(host, port, linkedToken).ConfigureAwait(false);
+                await TcpClient.ConnectAsync(_host, _port, linkedToken).ConfigureAwait(false);
 #else
                 linkedToken.ThrowIfCancellationRequested();
-                await TcpClient.ConnectAsync(host, port).ConfigureAwait(false);
+                await TcpClient.ConnectAsync(_host, _port).ConfigureAwait(false);
 #endif
 
                 var stream = TcpClient.GetStream();
@@ -167,7 +167,7 @@ namespace Sally7
                 try
                 {
                     await stream.FrameworkSpecificWriteAsync(buffer, 0,
-                            S7ConnectionHelpers.BuildConnectRequest(buffer, sourceTsap, destinationTsap),
+                            S7ConnectionHelpers.BuildConnectRequest(buffer, _sourceTsap, _destinationTsap),
                             cancellationToken)
                         .ConfigureAwait(false);
 
@@ -183,11 +183,11 @@ namespace Sally7
                         out var maxRequests);
 
                     Parameters = new S7ConnectionParameters(pduSize, maxRequests);
-                    bufferSize = Parameters.GetRequiredBufferSize();
+                    _bufferSize = Parameters.GetRequiredBufferSize();
 
-                    memoryPool ??= new Sally7MemoryPool(bufferSize);
+                    _memoryPool ??= new Sally7MemoryPool(_bufferSize);
 
-                    requestExecutor = executorFactory.Invoke(this);
+                    _requestExecutor = _executorFactory.Invoke(this);
                 }
                 finally
                 {
@@ -216,7 +216,7 @@ namespace Sally7
 
             IRequestExecutor executor = GetExecutorOrThrow();
 
-            using IMemoryOwner<byte> mo = memoryPool!.Rent(bufferSize);
+            using IMemoryOwner<byte> mo = _memoryPool!.Rent(_bufferSize);
             Memory<byte> mem = mo.Memory;
             int length = S7ConnectionHelpers.BuildReadRequest(mem.Span, dataItems);
 
@@ -243,7 +243,7 @@ namespace Sally7
         {
             IRequestExecutor executor = GetExecutorOrThrow();
 
-            using IMemoryOwner<byte> mo = memoryPool!.Rent(bufferSize);
+            using IMemoryOwner<byte> mo = _memoryPool!.Rent(_bufferSize);
             Memory<byte> mem = mo.Memory;
             int length = S7ConnectionHelpers.BuildWriteRequest(mem.Span, dataItems);
 
@@ -271,14 +271,14 @@ namespace Sally7
 
         private IRequestExecutor GetExecutorOrThrow()
         {
-            if (requestExecutor is null)
+            if (_requestExecutor is null)
             {
                 Throw();
                 [DoesNotReturn]
                 static void Throw() => throw new InvalidOperationException("Can't perform read when the connection is not yet open.");
             }
 
-            return requestExecutor;
+            return _requestExecutor;
         }
 
         private CancellationTokenSource CreateRequestTimeoutCancellationTokenSource(CancellationToken userToken)

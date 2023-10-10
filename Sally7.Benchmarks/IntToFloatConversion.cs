@@ -17,18 +17,18 @@ namespace Sally7.Benchmarks
 
         public IntToFloatConversion()
         {
-            byteValue = new byte[0];
+            _byteValue = new byte[0];
         }
 
         [Params(1, 2, 3)]
         public int Value { get; set; }
 
-        private byte[] byteValue;
+        private byte[] _byteValue;
 
         [GlobalSetup]
         public void SetByteValue()
         {
-            byteValue = BitConverter.GetBytes(Value);
+            _byteValue = BitConverter.GetBytes(Value);
         }
 
         [Benchmark]
@@ -51,7 +51,7 @@ namespace Sally7.Benchmarks
             // endianness and as such this doesn't work without additional code
             // to check endianness and possibly reverse the data before passing
             // it to BitConverter.
-            return BitConverter.ToSingle(byteValue, 0);
+            return BitConverter.ToSingle(_byteValue, 0);
         }
 
         [Benchmark]
