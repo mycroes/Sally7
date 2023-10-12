@@ -13,6 +13,9 @@ internal class CommunicationSequence
 
     private readonly ITestOutputHelper _output;
 
+    public static Fragment Pdu1 { get; } = nameof(Pdu1);
+    public static Fragment Pdu2 { get; } = nameof(Pdu2);
+
     public CommunicationSequence(ITestOutputHelper output)
     {
         this._output = output;
@@ -106,7 +109,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 0, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 8, // Parameter length (Communication Setup)
             0, 0, // Data length
 
@@ -132,7 +135,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 0, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 8, // Parameter length (Communication Setup)
             0, 0, // Data length
             0, // Error class
@@ -168,7 +171,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 14, // Parameter length (Read request)
             0, 0, // Data length
 
@@ -205,7 +208,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 2, // Parameter length (Read request)
             (byte) (dataLength >> 8 & 0xff), (byte) (dataLength & 0xff), // Data length
             0, // Error class
@@ -244,7 +247,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 14, // Parameter length (Write request)
             (byte)(dataLength >> 8 & 0xff), (byte)(dataLength & 0xff), // Data length
 
@@ -287,7 +290,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 2, // Parameter length (Write response)
             0, 1, // Data length
             0, // Error class
