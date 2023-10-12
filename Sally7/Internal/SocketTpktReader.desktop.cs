@@ -15,7 +15,7 @@ namespace Sally7.Internal
 
         public SocketTpktReader(Socket socket)
         {
-            this._socket = socket;
+            _socket = socket;
             _args = new SocketAsyncEventArgs();
             _awaitable = new SocketAwaitable(_args);
         }

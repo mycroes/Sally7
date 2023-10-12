@@ -53,7 +53,7 @@ namespace Sally7.RequestExecutor
             _socket = connection.TcpClient.Client;
             _bufferSize = connection.Parameters.GetRequiredBufferSize();
             _maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
-            this._memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
+            _memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
 
             _jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
             _sendSignal = new Signal();
@@ -263,7 +263,7 @@ namespace Sally7.RequestExecutor
 
             public void Complete(int length)
             {
-                this._length = length;
+                _length = length;
                 IsCompleted = true;
 
                 var prev = _continuation ?? Interlocked.CompareExchange(ref _continuation, Sentinel, null);
@@ -279,8 +279,8 @@ namespace Sally7.RequestExecutor
 
             public void OnCompleted(Action continuation)
             {
-                if (this._continuation == Sentinel ||
-                    Interlocked.CompareExchange(ref this._continuation, continuation, null) == Sentinel)
+                if (_continuation == Sentinel ||
+                    Interlocked.CompareExchange(ref _continuation, continuation, null) == Sentinel)
                 {
                     continuation.Invoke();
                 }
@@ -294,7 +294,7 @@ namespace Sally7.RequestExecutor
 
             public void SetBuffer(Memory<byte> buffer)
             {
-                this._buffer = buffer;
+                _buffer = buffer;
             }
         }
     }
