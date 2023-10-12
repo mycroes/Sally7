@@ -9,7 +9,7 @@ namespace Sally7.Internal
 {
     internal partial class SocketTpktReader
     {
-        public SocketTpktReader(Socket socket) => this._socket = socket;
+        public SocketTpktReader(Socket socket) => _socket = socket;
 
         public async ValueTask<int> ReadAsync(Memory<byte> message, CancellationToken cancellationToken)
         {

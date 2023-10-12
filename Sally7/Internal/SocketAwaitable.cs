@@ -46,8 +46,8 @@ namespace Sally7.Internal
 
         public void OnCompleted(Action continuation)
         {
-            if (this._continuation == Sentinel ||
-                Interlocked.CompareExchange(ref this._continuation, continuation, null) == Sentinel)
+            if (_continuation == Sentinel ||
+                Interlocked.CompareExchange(ref _continuation, continuation, null) == Sentinel)
             {
                 continuation.Invoke();
             }

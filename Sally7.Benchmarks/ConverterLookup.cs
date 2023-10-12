@@ -199,7 +199,7 @@ namespace Sally7.Benchmarks
 
             public DataItemWithConverter(Func<byte[], T> converter)
             {
-                this._converter = converter;
+                _converter = converter;
             }
 
             public T? Value { get; set; }

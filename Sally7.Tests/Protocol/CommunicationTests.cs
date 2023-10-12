@@ -11,7 +11,7 @@ public class CommunicationTests
 
     public CommunicationTests(ITestOutputHelper output)
     {
-        this._output = output;
+        _output = output;
     }
 
     [Fact]

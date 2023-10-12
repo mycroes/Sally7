@@ -66,7 +66,7 @@ namespace Sally7
         public TValue? Value
         {
             get => _value;
-            set => this._value = value;
+            set => _value = value;
         }
 
         public Address Address { get; }
