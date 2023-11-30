@@ -192,6 +192,7 @@ namespace Sally7.RequestExecutor
         {
             private readonly Channel<int> jobIdPool;
             private readonly Request[] requests;
+            private volatile bool disposed;
 
             public JobPool(int maxNumberOfConcurrentRequests)
             {
@@ -209,13 +210,17 @@ namespace Sally7.RequestExecutor
                 }
             }
 
-            public void Dispose() => jobIdPool.Writer.Complete();
+            public void Dispose()
+            {
+                disposed = true;
+                jobIdPool.Writer.Complete();
+            }
 
             public ValueTask<int> RentJobIdAsync(CancellationToken cancellationToken) => jobIdPool.Reader.ReadAsync(cancellationToken);
 
             public void ReturnJobId(int jobId)
             {
-                if (!jobIdPool.Writer.TryWrite(jobId))
+                if (!jobIdPool.Writer.TryWrite(jobId) && !disposed)
                 {
                     Sally7Exception.ThrowFailedToReturnJobIDToPool(jobId);
                 }
