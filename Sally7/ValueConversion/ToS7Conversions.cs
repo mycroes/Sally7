@@ -61,7 +61,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return BufferHelper.CopyAndAlign64Bit(Unsafe.As<long[], byte[]>(ref value), output, length);
+            return BufferHelper.CopyAndAlign64Bit(Unsafe.As<long[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromInt(in int value, int length, Span<byte> output)
@@ -75,7 +75,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return BufferHelper.CopyAndAlign32Bit(Unsafe.As<int[], byte[]>(ref value), output, length);
+            return BufferHelper.CopyAndAlign32Bit(Unsafe.As<int[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromShort(in short value, int length, Span<byte> output)
@@ -89,7 +89,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            return BufferHelper.CopyAndAlign16Bit(Unsafe.As<short[], byte[]>(ref value), output, length);
+            return BufferHelper.CopyAndAlign16Bit(Unsafe.As<short[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromByte(in byte value, int length, Span<byte> output)
