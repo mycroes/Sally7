@@ -188,55 +188,6 @@ namespace Sally7.RequestExecutor
             }
         }
 
-        private class JobPool : IDisposable
-        {
-            private readonly Channel<int> _jobIdPool;
-            private readonly Request[] _requests;
-            private bool _disposed;
-
-            public JobPool(int maxNumberOfConcurrentRequests)
-            {
-                _jobIdPool = Channel.CreateBounded<int>(maxNumberOfConcurrentRequests);
-                _requests = new Request[maxNumberOfConcurrentRequests];
-
-                for (int i = 0; i < maxNumberOfConcurrentRequests; ++i)
-                {
-                    if (!_jobIdPool.Writer.TryWrite(i + 1))
-                    {
-                        Sally7Exception.ThrowFailedToInitJobPool();
-                    }
-
-                    _requests[i] = new Request();
-                }
-            }
-
-            public void Dispose()
-            {
-                Volatile.Write(ref _disposed, true);
-                _jobIdPool.Writer.Complete();
-            }
-
-            public ValueTask<int> RentJobIdAsync(CancellationToken cancellationToken) => _jobIdPool.Reader.ReadAsync(cancellationToken);
-
-            public void ReturnJobId(int jobId)
-            {
-                if (!_jobIdPool.Writer.TryWrite(jobId) && !Volatile.Read(ref _disposed))
-                {
-                    Sally7Exception.ThrowFailedToReturnJobIDToPool(jobId);
-                }
-            }
-
-            [DebuggerNonUserCode]
-            public Request GetRequest(int jobId) => _requests[jobId - 1];
-
-            public void SetBufferForRequest(int jobId, Memory<byte> buffer)
-            {
-                Request req = GetRequest(jobId);
-                req.Reset();
-                req.SetBuffer(buffer);
-            }
-        }
-
         [DebuggerNonUserCode]
         [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
         private class Signal : IDisposable
@@ -252,55 +203,6 @@ namespace Sally7.RequestExecutor
             public bool TryRelease() => _channel.Writer.TryWrite(0);
 
             private bool NeedToWait => _channel.Reader.Count == 0;
-        }
-
-        private class Request : INotifyCompletion
-        {
-            private static readonly Action Sentinel = () => { };
-
-            private Memory<byte> _buffer;
-
-            public bool IsCompleted { get; private set; }
-            private int _length;
-            private Action? _continuation = Sentinel;
-
-            public Memory<byte> Buffer => _buffer;
-
-            public void Complete(int length)
-            {
-                this._length = length;
-                IsCompleted = true;
-
-                var prev = _continuation ?? Interlocked.CompareExchange(ref _continuation, Sentinel, null);
-                prev?.Invoke();
-            }
-
-            public Memory<byte> GetResult()
-            {
-                return _buffer.Slice(0, _length);
-            }
-
-            public Request GetAwaiter() => this;
-
-            public void OnCompleted(Action continuation)
-            {
-                if (this._continuation == Sentinel ||
-                    Interlocked.CompareExchange(ref this._continuation, continuation, null) == Sentinel)
-                {
-                    continuation.Invoke();
-                }
-            }
-
-            public void Reset()
-            {
-                _continuation = null;
-                IsCompleted = false;
-            }
-
-            public void SetBuffer(Memory<byte> buffer)
-            {
-                this._buffer = buffer;
-            }
         }
     }
 }
