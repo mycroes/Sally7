@@ -13,7 +13,7 @@ public static class ToPlcConverterTests
         public void ConvertByteToPlc(byte value)
         {
             // Arrange
-            var converter = ConverterFactory.GetToPlcConverter<byte>();
+            var converter = ConverterFactory.GetToPlcConverter<byte>(1);
             var buffer = new byte[sizeof(byte)];
 
             // Act
@@ -28,7 +28,7 @@ public static class ToPlcConverterTests
         public void ConvertSByteToPlc(sbyte value)
         {
             // Arrange
-            var converter = ConverterFactory.GetToPlcConverter<sbyte>();
+            var converter = ConverterFactory.GetToPlcConverter<sbyte>(1);
             var buffer = new byte[sizeof(sbyte)];
 
             // Act
@@ -97,7 +97,7 @@ public static class ToPlcConverterTests
         private static void TestConvertToPlc<T>(T value, int size, Func<T, byte[]> getBytes)
         {
             // Arrange
-            var converter = ConverterFactory.GetToPlcConverter<T>();
+            var converter = ConverterFactory.GetToPlcConverter<T>(1);
             var buffer = new byte[size];
 
             // Act
@@ -118,7 +118,7 @@ public static class ToPlcConverterTests
         public void ConvertFloatArrToPlc(float value)
         {
             // Arrange
-            var converter = ConverterFactory.GetToPlcConverter<float[]>();
+            var converter = ConverterFactory.GetToPlcConverter<float[]>(1);
             var buffer = new byte[sizeof(float)];
 
             // Act
