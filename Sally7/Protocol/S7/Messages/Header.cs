@@ -11,16 +11,6 @@
         public HeaderErrorClass ErrorClass;
         public byte ErrorCode;
 
-        public void Init(MessageType messageType, BigEndianShort paramLength, BigEndianShort dataLength)
-        {
-            ProtocolId = 0x32;
-            MessageType = messageType;
-            Reserved = default;
-            PduRef = 1;
-            ParamLength = paramLength;
-            DataLength = dataLength;
-        }
-
         public readonly void Assert(MessageType messageType)
         {
             if (ProtocolId != 0x32)

@@ -68,8 +68,10 @@ jobs:
     - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
+    - name: Build
+      run: dotnet build --configuration Release -v q
     - name: Run tests
-      run: dotnet test --configuration Release
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger GitHubActions
 
   deploy:
     # Publish only when creating a GitHub Release

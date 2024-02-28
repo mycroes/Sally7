@@ -1,6 +1,4 @@
-﻿using System;
-using Sally7.ValueConversion;
-using Xunit;
+﻿using Sally7.ValueConversion;
 
 namespace Sally7.Tests
 {
@@ -21,7 +19,7 @@ namespace Sally7.Tests
             var bytes = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
-            var converter = ConverterFactory.GetFromPlcConverter<long>();
+            var converter = ConverterFactory.GetFromPlcConverter<long>(1);
             long result = default;
             converter(ref result, bytes, sizeof(long));
 
@@ -41,7 +39,7 @@ namespace Sally7.Tests
             var bytes = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
-            var converter = ConverterFactory.GetFromPlcConverter<int>();
+            var converter = ConverterFactory.GetFromPlcConverter<int>(1);
             int result = default;
             converter(ref result, bytes, sizeof(int));
 
@@ -59,7 +57,7 @@ namespace Sally7.Tests
             var bytes = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
-            var converter = ConverterFactory.GetFromPlcConverter<short>();
+            var converter = ConverterFactory.GetFromPlcConverter<short>(1);
             short result = default;
             converter(ref result, bytes, sizeof(short));
 
@@ -77,7 +75,7 @@ namespace Sally7.Tests
             var bytes = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
-            var converter = ConverterFactory.GetFromPlcConverter<float>();
+            var converter = ConverterFactory.GetFromPlcConverter<float>(1);
             float result = default;
             converter(ref result, bytes, sizeof(float));
 
@@ -101,7 +99,7 @@ namespace Sally7.Tests
             var bytes = BitConverter.GetBytes((int) value);
             if (BitConverter.IsLittleEndian) Array.Reverse(bytes);
 
-            var converter = ConverterFactory.GetFromPlcConverter<EnumOfInt>();
+            var converter = ConverterFactory.GetFromPlcConverter<EnumOfInt>(1);
             EnumOfInt result = default;
             converter(ref result, bytes, sizeof(int));
 
@@ -144,8 +142,8 @@ namespace Sally7.Tests
                 bools[i] = random.Next() % 2 == 0;
             }
 
-            var toS7Converter = ConverterFactory.GetToPlcConverter<bool[]>();
-            var fromS7Converter = ConverterFactory.GetFromPlcConverter<bool[]>();
+            var toS7Converter = ConverterFactory.GetToPlcConverter<bool[]>(boolArraySize);
+            var fromS7Converter = ConverterFactory.GetFromPlcConverter<bool[]>(boolArraySize);
 
             int length = toS7Converter(bools, bools.Length, bytes);
 

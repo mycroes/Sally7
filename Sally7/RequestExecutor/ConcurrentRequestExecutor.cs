@@ -18,17 +18,17 @@ namespace Sally7.RequestExecutor
     {
         private const int JobIdIndex = 12;
 
-        private readonly Socket socket;
-        private readonly int bufferSize;
-        private readonly int maxRequests;
-        private readonly MemoryPool<byte> memoryPool;
-        private readonly SocketTpktReader reader;
-        private readonly JobPool jobPool;
-        private readonly Signal sendSignal;
-        private readonly Signal receiveSignal;
+        private readonly Socket _socket;
+        private readonly int _bufferSize;
+        private readonly int _maxRequests;
+        private readonly MemoryPool<byte> _memoryPool;
+        private readonly SocketTpktReader _reader;
+        private readonly JobPool _jobPool;
+        private readonly Signal _sendSignal;
+        private readonly Signal _receiveSignal;
 
 #if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
-        private readonly SocketAwaitable sendAwaitable;
+        private readonly SocketAwaitable _sendAwaitable;
 #endif
 
         /// <inheritdoc/>
@@ -50,55 +50,55 @@ namespace Sally7.RequestExecutor
             }
 
             Connection = connection;
-            socket = connection.TcpClient.Client;
-            bufferSize = connection.Parameters.GetRequiredBufferSize();
-            maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
-            this.memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
+            _socket = connection.TcpClient.Client;
+            _bufferSize = connection.Parameters.GetRequiredBufferSize();
+            _maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
+            this._memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
 
-            jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
-            sendSignal = new Signal();
-            receiveSignal = new Signal();
+            _jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
+            _sendSignal = new Signal();
+            _receiveSignal = new Signal();
 
-            if (!sendSignal.TryInit()) Sally7Exception.ThrowFailedToInitSendingSignal();
-            if (!receiveSignal.TryInit()) Sally7Exception.ThrowFailedToInitReceivingSignal();
+            if (!_sendSignal.TryInit()) Sally7Exception.ThrowFailedToInitSendingSignal();
+            if (!_receiveSignal.TryInit()) Sally7Exception.ThrowFailedToInitReceivingSignal();
 
-            reader = new SocketTpktReader(socket);
+            _reader = new SocketTpktReader(_socket);
 
 #if !NETSTANDARD2_1_OR_GREATER && !NET5_0_OR_GREATER
-            sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
+            _sendAwaitable = new SocketAwaitable(new SocketAsyncEventArgs());
 #endif
         }
 
         public void Dispose()
         {
-            jobPool.Dispose();
-            sendSignal.Dispose();
-            receiveSignal.Dispose();
+            _jobPool.Dispose();
+            _sendSignal.Dispose();
+            _receiveSignal.Dispose();
         }
 
         /// <inheritdoc/>
         public async ValueTask<Memory<byte>> PerformRequest(ReadOnlyMemory<byte> request, Memory<byte> response, CancellationToken cancellationToken)
         {
-            int jobId = await jobPool.RentJobIdAsync(cancellationToken).ConfigureAwait(false);
+            int jobId = await _jobPool.RentJobIdAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                jobPool.SetBufferForRequest(jobId, response);
+                _jobPool.SetBufferForRequest(jobId, response);
 
-                using (IMemoryOwner<byte> mo = memoryPool.Rent(request.Length))
+                using (IMemoryOwner<byte> mo = _memoryPool.Rent(request.Length))
                 {
                     request.CopyTo(mo.Memory);
                     mo.Memory.Span[JobIdIndex] = (byte) jobId;
 
-                    _ = await sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    _ = await _sendSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                     // If we bail while sending the PLC might still respond to the data that was sent.
                     // This both breaks the send-one-receive-one flow as well as it might end up
                     // completing a new job that reused the ID.
-                    var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
+                    var closeOnCancel = cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, _socket);
                     try
                     {
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
-                        int written = await socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                        int written = await _socket.SendAsync(mo.Memory.Slice(0, request.Length), SocketFlags.None, cancellationToken).ConfigureAwait(false);
                         Debug.Assert(written == request.Length);
 #else
                         if (!MemoryMarshal.TryGetArray(mo.Memory.Slice(0, request.Length), out ArraySegment<byte> segment))
@@ -106,8 +106,8 @@ namespace Sally7.RequestExecutor
                             Sally7Exception.ThrowMemoryWasNotArrayBased();
                         }
 
-                        sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
-                        await socket.SendAsync(sendAwaitable);
+                        _sendAwaitable.EventArgs.SetBuffer(segment.Array, segment.Offset, segment.Count);
+                        await _socket.SendAsync(_sendAwaitable);
 #endif
                     }
                     finally
@@ -118,7 +118,7 @@ namespace Sally7.RequestExecutor
                         closeOnCancel.Dispose();
 #endif
 
-                        if (!sendSignal.TryRelease())
+                        if (!_sendSignal.TryRelease())
                         {
                             Sally7Exception.ThrowFailedToSignalSendDone();
                         }
@@ -130,18 +130,18 @@ namespace Sally7.RequestExecutor
                 Request rec;
                 var length = 0;
 
-                using (IMemoryOwner<byte> mo = memoryPool.Rent(bufferSize))
+                using (IMemoryOwner<byte> mo = _memoryPool.Rent(_bufferSize))
                 {
-                    _ = await receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    _ = await _receiveSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
 
                     // If we bail while reading we break the send-one-receive-one flow, so we might as well close right away.
                     // There is minimal risk of closing connections while data was actually received but handling here
                     // avoids registering on the cancellationToken on every socket call.
                     var closeOnCancel =
-                        cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, socket);
+                        cancellationToken.MaybeUnsafeRegister(SocketHelper.CloseSocketCallback, _socket);
                     try
                     {
-                        length = await reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
+                        length = await _reader.ReadAsync(mo.Memory, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception) when (cancellationToken.IsCancellationRequested)
                     {
@@ -155,7 +155,7 @@ namespace Sally7.RequestExecutor
                         closeOnCancel.Dispose();
 #endif
 
-                        if (!receiveSignal.TryRelease())
+                        if (!_receiveSignal.TryRelease())
                         {
                             Sally7Exception.ThrowFailedToSignalReceiveDone();
                         }
@@ -164,7 +164,7 @@ namespace Sally7.RequestExecutor
                     Memory<byte> message = mo.Memory.Slice(0, length);
                     int replyJobId = mo.Memory.Span[JobIdIndex];
 
-                    if ((uint)(replyJobId - 1) >= (uint)maxRequests)
+                    if ((uint)(replyJobId - 1) >= (uint)_maxRequests)
                     {
                         // todo: This is breaking, because we return the current jobId to the pool
                         // so when that gets answered it might complete an incorrect request.
@@ -172,7 +172,7 @@ namespace Sally7.RequestExecutor
                     }
 
                     // todo: There's no state validation on the request, potentially this is not rented out at all.
-                    rec = jobPool.GetRequest(replyJobId);
+                    rec = _jobPool.GetRequest(replyJobId);
 
                     message.CopyTo(rec.Buffer);
                 }
@@ -180,60 +180,11 @@ namespace Sally7.RequestExecutor
                 rec.Complete(length);
 
                 // await the actual completion before returning this job ID to the pool
-                return await jobPool.GetRequest(jobId);
+                return await _jobPool.GetRequest(jobId);
             }
             finally
             {
-                jobPool.ReturnJobId(jobId);
-            }
-        }
-
-        private class JobPool : IDisposable
-        {
-            private readonly Channel<int> jobIdPool;
-            private readonly Request[] requests;
-            private volatile bool disposed;
-
-            public JobPool(int maxNumberOfConcurrentRequests)
-            {
-                jobIdPool = Channel.CreateBounded<int>(maxNumberOfConcurrentRequests);
-                requests = new Request[maxNumberOfConcurrentRequests];
-
-                for (int i = 0; i < maxNumberOfConcurrentRequests; ++i)
-                {
-                    if (!jobIdPool.Writer.TryWrite(i + 1))
-                    {
-                        Sally7Exception.ThrowFailedToInitJobPool();
-                    }
-
-                    requests[i] = new Request();
-                }
-            }
-
-            public void Dispose()
-            {
-                disposed = true;
-                jobIdPool.Writer.Complete();
-            }
-
-            public ValueTask<int> RentJobIdAsync(CancellationToken cancellationToken) => jobIdPool.Reader.ReadAsync(cancellationToken);
-
-            public void ReturnJobId(int jobId)
-            {
-                if (!jobIdPool.Writer.TryWrite(jobId) && !disposed)
-                {
-                    Sally7Exception.ThrowFailedToReturnJobIDToPool(jobId);
-                }
-            }
-
-            [DebuggerNonUserCode]
-            public Request GetRequest(int jobId) => requests[jobId - 1];
-
-            public void SetBufferForRequest(int jobId, Memory<byte> buffer)
-            {
-                Request req = GetRequest(jobId);
-                req.Reset();
-                req.SetBuffer(buffer);
+                _jobPool.ReturnJobId(jobId);
             }
         }
 
@@ -241,66 +192,17 @@ namespace Sally7.RequestExecutor
         [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
         private class Signal : IDisposable
         {
-            private readonly Channel<int> channel = Channel.CreateBounded<int>(1);
+            private readonly Channel<int> _channel = Channel.CreateBounded<int>(1);
 
-            public void Dispose() => channel.Writer.Complete();
+            public void Dispose() => _channel.Writer.Complete();
 
-            public bool TryInit() => channel.Writer.TryWrite(0);
+            public bool TryInit() => _channel.Writer.TryWrite(0);
 
-            public ValueTask<int> WaitAsync(CancellationToken cancellationToken) => channel.Reader.ReadAsync(cancellationToken);
+            public ValueTask<int> WaitAsync(CancellationToken cancellationToken) => _channel.Reader.ReadAsync(cancellationToken);
 
-            public bool TryRelease() => channel.Writer.TryWrite(0);
+            public bool TryRelease() => _channel.Writer.TryWrite(0);
 
-            private bool NeedToWait => channel.Reader.Count == 0;
-        }
-
-        private class Request : INotifyCompletion
-        {
-            private static readonly Action Sentinel = () => { };
-
-            private Memory<byte> buffer;
-
-            public bool IsCompleted { get; private set; }
-            private int length;
-            private Action? continuation = Sentinel;
-
-            public Memory<byte> Buffer => buffer;
-
-            public void Complete(int length)
-            {
-                this.length = length;
-                IsCompleted = true;
-
-                var prev = continuation ?? Interlocked.CompareExchange(ref continuation, Sentinel, null);
-                prev?.Invoke();
-            }
-
-            public Memory<byte> GetResult()
-            {
-                return buffer.Slice(0, length);
-            }
-
-            public Request GetAwaiter() => this;
-
-            public void OnCompleted(Action continuation)
-            {
-                if (this.continuation == Sentinel ||
-                    Interlocked.CompareExchange(ref this.continuation, continuation, null) == Sentinel)
-                {
-                    continuation.Invoke();
-                }
-            }
-
-            public void Reset()
-            {
-                continuation = null;
-                IsCompleted = false;
-            }
-
-            public void SetBuffer(Memory<byte> buffer)
-            {
-                this.buffer = buffer;
-            }
+            private bool NeedToWait => _channel.Reader.Count == 0;
         }
     }
 }
