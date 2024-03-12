@@ -1,14 +1,17 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Sally7.Internal;
 
 namespace Sally7.RequestExecutor;
 
-internal class Request : INotifyCompletion
+internal class Request : INotifyCompletion, IDisposable
 {
     private static readonly Action Sentinel = () => { };
 
     private Memory<byte> _buffer;
+
+    private bool _disposed;
 
     public bool IsCompleted { get; private set; }
     private int _length;
@@ -21,12 +24,13 @@ internal class Request : INotifyCompletion
         this._length = length;
         IsCompleted = true;
 
-        var prev = _continuation ?? Interlocked.CompareExchange(ref _continuation, Sentinel, null);
-        prev?.Invoke();
+        InvokeContinuation();
     }
 
     public Memory<byte> GetResult()
     {
+        DisposableHelper.ThrowIf(_disposed, this);
+
         return _buffer.Slice(0, _length);
     }
 
@@ -44,11 +48,23 @@ internal class Request : INotifyCompletion
     public void Reset()
     {
         _continuation = null;
-        IsCompleted = false;
+        IsCompleted = _disposed;
     }
 
     public void SetBuffer(Memory<byte> buffer)
     {
         this._buffer = buffer;
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        InvokeContinuation();
+    }
+
+    private void InvokeContinuation()
+    {
+        var prev = _continuation ?? Interlocked.CompareExchange(ref _continuation, Sentinel, null);
+        prev?.Invoke();
     }
 }
