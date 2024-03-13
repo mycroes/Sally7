@@ -2,10 +2,8 @@ using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Sally7.Internal;
 
@@ -186,23 +184,6 @@ namespace Sally7.RequestExecutor
             {
                 _jobPool.ReturnJobId(jobId);
             }
-        }
-
-        [DebuggerNonUserCode]
-        [DebuggerDisplay(nameof(NeedToWait) + ": {" + nameof(NeedToWait) + ",nq}")]
-        private class Signal : IDisposable
-        {
-            private readonly Channel<int> _channel = Channel.CreateBounded<int>(1);
-
-            public void Dispose() => _channel.Writer.Complete();
-
-            public bool TryInit() => _channel.Writer.TryWrite(0);
-
-            public ValueTask<int> WaitAsync(CancellationToken cancellationToken) => _channel.Reader.ReadAsync(cancellationToken);
-
-            public bool TryRelease() => _channel.Writer.TryWrite(0);
-
-            private bool NeedToWait => _channel.Reader.Count == 0;
         }
     }
 }

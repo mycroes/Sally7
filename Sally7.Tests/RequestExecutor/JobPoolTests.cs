@@ -30,4 +30,19 @@ public class JobPoolTests
         // Assert
         sut.ReturnJobId(jobId);
     }
+
+    [Fact]
+    public void Dispose_Calls_Dispose_On_Requests()
+    {
+        // Arrange
+        var sut = new JobPool(1);
+        var jobId = sut.RentJobIdAsync(CancellationToken.None).Result;
+        var request = sut.GetRequest(jobId);
+
+        // Act
+        sut.Dispose();
+
+        // Assert
+        Should.Throw<ObjectDisposedException>(() => request.GetResult());
+    }
 }

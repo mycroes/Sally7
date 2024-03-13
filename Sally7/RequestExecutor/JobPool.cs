@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Sally7.Internal;
 
 namespace Sally7.RequestExecutor;
 
@@ -32,6 +33,11 @@ internal class JobPool : IDisposable
     {
         Volatile.Write(ref _disposed, true);
         _jobIdPool.Writer.Complete();
+
+        foreach (var request in _requests)
+        {
+            request.Dispose();
+        }
     }
 
     public ValueTask<int> RentJobIdAsync(CancellationToken cancellationToken) => _jobIdPool.Reader.ReadAsync(cancellationToken);
@@ -45,7 +51,12 @@ internal class JobPool : IDisposable
     }
 
     [DebuggerNonUserCode]
-    public Request GetRequest(int jobId) => _requests[jobId - 1];
+    public Request GetRequest(int jobId)
+    {
+        DisposableHelper.ThrowIf(Volatile.Read(ref _disposed), this);
+
+        return _requests[jobId - 1];
+    }
 
     public void SetBufferForRequest(int jobId, Memory<byte> buffer)
     {
