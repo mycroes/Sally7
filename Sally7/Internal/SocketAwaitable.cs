@@ -18,7 +18,7 @@ namespace Sally7.Internal
         private static readonly Action Sentinel = () => { };
 
         public bool WasCompleted;
-        private Action? continuation;
+        private Action? _continuation;
         public readonly SocketAsyncEventArgs EventArgs;
 
         public SocketAwaitable(SocketAsyncEventArgs eventArgs)
@@ -26,7 +26,7 @@ namespace Sally7.Internal
             EventArgs = eventArgs ?? throw new ArgumentNullException(nameof(eventArgs));
             eventArgs.Completed += delegate
             {
-                var prev = continuation ?? Interlocked.CompareExchange(ref continuation, Sentinel, null);
+                var prev = _continuation ?? Interlocked.CompareExchange(ref _continuation, Sentinel, null);
                 prev?.Invoke();
             };
         }
@@ -34,7 +34,7 @@ namespace Sally7.Internal
         internal void Reset()
         {
             WasCompleted = false;
-            continuation = null;
+            _continuation = null;
         }
 
         public SocketAwaitable GetAwaiter()
@@ -46,8 +46,8 @@ namespace Sally7.Internal
 
         public void OnCompleted(Action continuation)
         {
-            if (this.continuation == Sentinel ||
-                Interlocked.CompareExchange(ref this.continuation, continuation, null) == Sentinel)
+            if (this._continuation == Sentinel ||
+                Interlocked.CompareExchange(ref this._continuation, continuation, null) == Sentinel)
             {
                 continuation.Invoke();
             }

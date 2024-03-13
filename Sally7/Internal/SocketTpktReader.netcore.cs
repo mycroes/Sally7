@@ -9,7 +9,7 @@ namespace Sally7.Internal
 {
     internal partial class SocketTpktReader
     {
-        public SocketTpktReader(Socket socket) => this.socket = socket;
+        public SocketTpktReader(Socket socket) => this._socket = socket;
 
         public async ValueTask<int> ReadAsync(Memory<byte> message, CancellationToken cancellationToken)
         {
@@ -22,7 +22,7 @@ namespace Sally7.Internal
                     buffer = message[count..TpktSize];
                 }
 
-                int read = await socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                int read = await _socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
 
                 if (read <= 0)
                 {
@@ -38,7 +38,7 @@ namespace Sally7.Internal
             while (count < receivedLength)
             {
                 buffer = message[count..receivedLength];
-                int read = await socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
+                int read = await _socket.ReceiveAsync(buffer, SocketFlags.None, cancellationToken).ConfigureAwait(false);
 
                 if (read <= 0)
                 {

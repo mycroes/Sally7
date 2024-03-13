@@ -1,4 +1,5 @@
 ﻿using System;
+using Sally7.Internal;
 using Sally7.Protocol;
 using Sally7.Protocol.S7;
 using Sally7.ValueConversion;
@@ -7,95 +8,75 @@ namespace Sally7
 {
     public class DataBlockDataItem<TValue> : IDataItem<TValue>
     {
-        private readonly VariableType variableType;
-        private readonly TransportSize transportSize;
-        private readonly int elementSize;
-        private readonly ConvertToS7<TValue> toS7Converter;
-        private readonly ConvertFromS7<TValue> fromS7Converter;
+        private readonly ConvertToS7<TValue> _toS7Converter;
+        private readonly ConvertFromS7<TValue> _fromS7Converter;
+        private TValue? _value;
 
-        public DataBlockDataItem() : this(ConverterFactory.GetToPlcConverter<TValue>(),
-            ConverterFactory.GetFromPlcConverter<TValue>(), ConversionHelper.GetElementSize<TValue>())
+        public DataBlockDataItem(BigEndianShort dbNumber, int startByte, int length = 1) : this(dbNumber, startByte, 0,
+            length)
         {
+        }
+
+        public DataBlockDataItem(BigEndianShort dbNumber, int startByte, int bit, int length = 1)
+        {
+            Assertions.AssertDataItemLengthIsValidForType(length, typeof(TValue));
+            Assertions.AssertBitIsValidForType(bit, typeof(TValue));
+
+            _toS7Converter = ConverterFactory.GetToPlcConverter<TValue>(length);
+            _fromS7Converter = ConverterFactory.GetFromPlcConverter<TValue>(length);
+            var elementSize = ConversionHelper.GetElementSize<TValue>();
+
+            DbNumber = dbNumber;
+            StartByte = startByte;
+            Bit = bit;
+            Length = length;
+
             if (typeof(TValue) == typeof(bool))
             {
-                variableType = VariableType.Bit;
-                transportSize = TransportSize.Bit;
+                VariableType = VariableType.Bit;
+                TransportSize = TransportSize.Bit;
             }
             else
             {
-                variableType = VariableType.Byte;
-                transportSize = TransportSize.Byte;
+                VariableType = VariableType.Byte;
+                TransportSize = TransportSize.Byte;
             }
-        }
 
-        private DataBlockDataItem(ConvertToS7<TValue> toS7Converter, ConvertFromS7<TValue> fromS7Converter, int elementSize)
-        {
-            this.toS7Converter = toS7Converter;
-            this.fromS7Converter = fromS7Converter;
-            this.elementSize = elementSize;
+            Address = Address.FromStartByteAndBit(startByte, bit);
 
-            if (typeof(TValue).IsValueType) SetLength(1);
-        }
-
-        private Address address;
-        private int startByte;
-        private int bit;
-        private TValue? value;
-        private int length;
-
-        public BigEndianShort DbNumber { get; set; }
-        public BigEndianShort ReadCount { get; private set; }
-
-        public int Length
-        {
-            get => length;
-            set => SetLength(value);
-        }
-
-        public TValue? Value
-        {
-            get => value;
-            set => this.value = value;
-        }
-
-        public int StartByte
-        {
-            get => startByte;
-            set => address.FromStartByteAndBit(startByte = value, bit);
-        }
-
-        public int Bit
-        {
-            get => bit;
-            set => address.FromStartByteAndBit(startByte, bit = value);
-        }
-
-        Address IDataItem.Address => address;
-        Area IDataItem.Area => Area.DataBlock;
-        TransportSize IDataItem.TransportSize => transportSize;
-        VariableType IDataItem.VariableType => variableType;
-
-        int IDataItem.WriteValue(Span<byte> output) => toS7Converter.Invoke(value, Length, output);
-
-        void IDataItem.ReadValue(ReadOnlySpan<byte> input) => fromS7Converter.Invoke(ref value, input, Length);
-
-        private void SetLength(int newLength)
-        {
-            if (length == newLength) return;
-
-            length = newLength;
             if (typeof(TValue) == typeof(string))
             {
                 ReadCount = length + 2;
             }
             else if (typeof(TValue) == typeof(bool[]))
             {
-                ReadCount = (length + 7) >> 3;      // bit-hack for (length + 7) / 8
+                ReadCount = (length + 7) >> 3; // Round to bytes
             }
             else
             {
                 ReadCount = length * elementSize;
             }
         }
+
+        public BigEndianShort DbNumber { get; }
+        public int StartByte { get; }
+        public int Bit { get; }
+        public int Length { get; }
+
+        public TValue? Value
+        {
+            get => _value;
+            set => this._value = value;
+        }
+
+        public Address Address { get; }
+        public BigEndianShort ReadCount { get; }
+        public Area Area => Area.DataBlock;
+        public TransportSize TransportSize { get; }
+        public VariableType VariableType { get; }
+
+        int IDataItem.WriteValue(Span<byte> output) => _toS7Converter.Invoke(Value, Length, output);
+
+        void IDataItem.ReadValue(ReadOnlySpan<byte> input) => _fromS7Converter.Invoke(ref _value, input, Length);
     }
 }

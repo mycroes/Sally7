@@ -10,13 +10,6 @@ namespace Sally7.Protocol.Cotp
         public byte DataIdentifier;
         public byte PduNumberAndEot;
 
-        public void Init()
-        {
-            Length = 2;
-            DataIdentifier = 0b1111_0000;
-            PduNumberAndEot = 0b1_000_0000;
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void Assert()
         {

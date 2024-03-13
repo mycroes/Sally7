@@ -2,13 +2,15 @@
 using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
+using Sally7.Internal;
 
 namespace Sally7.ValueConversion
 {
     internal static class ToS7Conversions
     {
-        public static Delegate GetConverter<TValue>()
+        public static Delegate GetConverter<TValue>(int length)
         {
             if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
             {
@@ -59,10 +61,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromLong(value[i], 1, output.Slice(i * sizeof(long)));
-
-            return value.Length * sizeof(long);
+            return BufferHelper.CopyAndAlign64Bit(Unsafe.As<long[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromInt(in int value, int length, Span<byte> output)
@@ -76,10 +75,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromInt(value[i], 1, output.Slice(i * sizeof(int)));
-
-            return value.Length * sizeof(int);
+            return BufferHelper.CopyAndAlign32Bit(Unsafe.As<int[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromShort(in short value, int length, Span<byte> output)
@@ -93,10 +89,7 @@ namespace Sally7.ValueConversion
         {
             if (value == null) throw new ArgumentNullException(nameof(value), "Value can't be null.");
 
-            for (var i = 0; i < value.Length; i++)
-                ConvertFromShort(value[i], 1, output.Slice(i * sizeof(short)));
-
-            return value.Length * sizeof(short);
+            return BufferHelper.CopyAndAlign16Bit(Unsafe.As<short[], byte[]>(ref Unsafe.AsRef(value)), output, length);
         }
 
         private static int ConvertFromByte(in byte value, int length, Span<byte> output)
@@ -112,7 +105,7 @@ namespace Sally7.ValueConversion
 
             value.AsSpan().CopyTo(output);
 
-            return value.Length;
+            return length;
         }
 
         private static int ConvertFromBoolArray(in bool[]? value, int length, Span<byte> output)
