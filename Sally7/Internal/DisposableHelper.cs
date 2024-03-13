@@ -6,7 +6,7 @@ internal static class DisposableHelper
 {
     public static void ThrowIf(bool condition, object instance)
     {
-        void Throw() => throw new ObjectDisposedException(instance.ToString());
+        void Throw() => throw new ObjectDisposedException(instance.GetType().FullName);
 
         if (condition) Throw();
     }
