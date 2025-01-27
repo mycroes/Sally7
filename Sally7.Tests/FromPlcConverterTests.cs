@@ -2,7 +2,7 @@
 
 namespace Sally7.Tests
 {
-    public class ValueTypeConversionTests
+    public class FromPlcConverterTests
     {
         [Theory]
         [InlineData(0)]
