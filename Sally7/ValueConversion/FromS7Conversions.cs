@@ -9,7 +9,8 @@ namespace Sally7.ValueConversion
     {
         public static Delegate GetConverter<TValue>(int length)
         {
-            if (typeof(TValue).IsPrimitive || typeof(TValue).IsEnum)
+            // Hack, will convert structs as numerical types of equal size as the struct.
+            if (typeof(TValue).IsValueType)
             {
                 return Unsafe.SizeOf<TValue>() switch
                 {
@@ -29,7 +30,8 @@ namespace Sally7.ValueConversion
                 var elementType = typeof(TValue).GetElementType() ?? throw new Exception(
                     $"Type {typeof(TValue)} doesn't have an ElementType.");
 
-                if (elementType.IsPrimitive || elementType.IsEnum)
+                // Hack, will convert structs as numerical types of equal size as the struct.
+                if (elementType.IsValueType)
                 {
                     return ConversionHelper.SizeOf(elementType) switch
                     {
