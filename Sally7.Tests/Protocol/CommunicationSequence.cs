@@ -9,16 +9,34 @@ namespace Sally7.Tests.Protocol;
 
 internal class CommunicationSequence
 {
-    private readonly List<(byte[], byte[])> _sequence = new();
+    private readonly List<(Fragment[], Fragment[])> _sequence = new();
 
     private readonly ITestOutputHelper _output;
+
+    public static Fragment Pdu1 { get; } = nameof(Pdu1);
+    public static Fragment Pdu2 { get; } = nameof(Pdu2);
 
     public CommunicationSequence(ITestOutputHelper output)
     {
         _output = output;
     }
 
-    public CommunicationSequence AddCall(byte[] request, byte[] response)
+    public class Fragment
+    {
+        public byte? Value { get; private init; }
+        public string? Key { get; private init; }
+
+        private Fragment()
+        {
+        }
+
+        public static implicit operator Fragment(byte value) => new() { Value = value };
+        public static implicit operator Fragment(string value) => new() { Key = value };
+
+        public static IEnumerable<Fragment> FromBytes(IEnumerable<byte> bytes) => bytes.Select(x => (Fragment)x);
+    }
+
+    public CommunicationSequence AddCall(Fragment[] request, Fragment[] response)
     {
         _sequence.Add((request, response));
 
@@ -27,7 +45,7 @@ internal class CommunicationSequence
 
     public CommunicationSequence AddConnectRequest(PduSizeParameter.PduSize pduSize, Tsap sourceTsap, Tsap destinationTsap)
     {
-        return AddCall(new byte[]
+        return AddCall(new Fragment[]
         {
             // TPKT
             3, // Version
@@ -57,7 +75,7 @@ internal class CommunicationSequence
             2, // Parameter length
             destinationTsap.Channel, // Channel
             destinationTsap.Position, // Position
-        }, new byte[]
+        }, new Fragment[]
         {
             // TPKT
             3, // Version
@@ -75,7 +93,7 @@ internal class CommunicationSequence
 
     public CommunicationSequence AddCommunicationSetup()
     {
-        return AddCall(new byte[]
+        return AddCall(new Fragment[]
         {
             // TPKT
             3, // Version
@@ -91,7 +109,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 0, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 8, // Parameter length (Communication Setup)
             0, 0, // Data length
 
@@ -101,7 +119,7 @@ internal class CommunicationSequence
             0, 10, // Max AMQ caller
             0, 10, // Max AMQ callee
             3, 192, // PDU size (960)
-        }, new byte[]
+        }, new Fragment[]
         {
             // TPKT
             3, // Version
@@ -117,7 +135,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 0, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 8, // Parameter length (Communication Setup)
             0, 0, // Data length
             0, // Error class
@@ -137,7 +155,7 @@ internal class CommunicationSequence
     {
         var dataLength = 4 + data.Length;
 
-        return AddCall(new byte[]
+        return AddCall(new Fragment[]
         {
             // TPKT
             3, // Version
@@ -153,7 +171,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 14, // Parameter length (Read request)
             0, 0, // Data length
 
@@ -174,7 +192,7 @@ internal class CommunicationSequence
             (byte) (address >> 16 & 0xff), // Address, upper byte
             (byte) (address >> 8 & 0xff), // Address, middle byte
             (byte) (address & 0xff), // Address, lower byte
-        }, new byte[]
+        }, new Fragment[]
         {
             // TPKT
             3, // Version
@@ -190,7 +208,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 2, // Parameter length (Read request)
             (byte) (dataLength >> 8 & 0xff), (byte) (dataLength & 0xff), // Data length
             0, // Error class
@@ -205,7 +223,7 @@ internal class CommunicationSequence
             (byte) transportSize, // Transport size
             (byte) (data.Length >> 5 & 0xff), // Data length, upper byte, in bits
             (byte) (data.Length << 3 & 0xff), // Data length, lower byte, in bits
-        }.Concat(data).ToArray());
+        }.Concat(Fragment.FromBytes(data)).ToArray());
     }
 
     public CommunicationSequence AddWrite(Area area, int dbNumber, int address, int length, TransportSize transportSize,
@@ -213,7 +231,7 @@ internal class CommunicationSequence
     {
         var dataLength = 4 + data.Length;
 
-        return AddCall(new byte[]
+        return AddCall(new Fragment[]
         {
             // TPKT
             3, // Version
@@ -229,7 +247,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x01, // Message type job request
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 14, // Parameter length (Write request)
             (byte)(dataLength >> 8 & 0xff), (byte)(dataLength & 0xff), // Data length
 
@@ -256,7 +274,7 @@ internal class CommunicationSequence
             (byte) transportSize, // Transport size
             (byte) (data.Length >> 5 & 0xff),
             (byte) (data.Length << 3 & 0xff),
-        }.Concat(data).ToArray(), new byte[]
+        }.Concat(Fragment.FromBytes(data)).ToArray(), new Fragment[]
         {
             // TPKT
             3, // Version
@@ -272,7 +290,7 @@ internal class CommunicationSequence
             0x32, // Protocol ID
             0x03, // Message type ack data
             0, 0, // Reserved
-            1, 1, // PDU reference
+            Pdu1, Pdu2, // PDU reference
             0, 2, // Parameter length (Write response)
             0, 1, // Data length
             0, // Error class
@@ -284,7 +302,7 @@ internal class CommunicationSequence
 
             // Result code per item
             0xff, // ErrorCode
-        }.Concat(data).ToArray());
+        }.Concat(Fragment.FromBytes(data)).ToArray());
     }
 
     public Task Serve(out int port)
@@ -305,10 +323,34 @@ internal class CommunicationSequence
 
                     var received = buffer.Take(bytesReceived).ToArray();
                     _output.WriteLine($"=> {BitConverter.ToString(received)}");
-                    received.ShouldBe(request);
 
-                    _output.WriteLine($"<= {BitConverter.ToString(response)}");
-                    socketIn.Send(response);
+                    var captures = new Dictionary<string, byte>();
+
+                    for (var i = 0; i < Math.Min(request.Length, received.Length); i++)
+                    {
+                        if (request[i].Key is { } key)
+                        {
+                            captures.Add(key, received[i]);
+                        }
+                        else if (request[i].Value != received[i])
+                        {
+                            throw new Exception(
+                                $"Value '{received[i]}' at index {i} of received data does not match expected value '{request[i].Value}'.");
+                        }
+                    }
+
+                    var res = response.Select((f, i) =>
+                    {
+                        if (f.Key is not { } key) return f.Value!.Value;
+
+                        if (captures.TryGetValue(key, out var capture)) return capture;
+
+                        throw new Exception(
+                            $"Placeholder '{key}' at index {i} of response was not captured from the request.");
+                    }).ToArray();
+
+                    _output.WriteLine($"<= {BitConverter.ToString(res)}");
+                    socketIn.Send(res);
                 }
             }
             finally
