@@ -21,7 +21,7 @@ internal class Request : INotifyCompletion, IDisposable
 
     public void Complete(int length)
     {
-        this._length = length;
+        _length = length;
         IsCompleted = true;
 
         InvokeContinuation();
@@ -38,8 +38,8 @@ internal class Request : INotifyCompletion, IDisposable
 
     public void OnCompleted(Action continuation)
     {
-        if (this._continuation == Sentinel ||
-            Interlocked.CompareExchange(ref this._continuation, continuation, null) == Sentinel)
+        if (_continuation == Sentinel ||
+            Interlocked.CompareExchange(ref _continuation, continuation, null) == Sentinel)
         {
             continuation.Invoke();
         }
@@ -53,7 +53,7 @@ internal class Request : INotifyCompletion, IDisposable
 
     public void SetBuffer(Memory<byte> buffer)
     {
-        this._buffer = buffer;
+        _buffer = buffer;
     }
 
     public void Dispose()

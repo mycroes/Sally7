@@ -51,7 +51,7 @@ namespace Sally7.RequestExecutor
             _socket = connection.TcpClient.Client;
             _bufferSize = connection.Parameters.GetRequiredBufferSize();
             _maxRequests = connection.Parameters.MaximumNumberOfConcurrentRequests;
-            this._memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
+            _memoryPool = memoryPool ?? MemoryPool<byte>.Shared;
 
             _jobPool = new JobPool(connection.Parameters.MaximumNumberOfConcurrentRequests);
             _sendSignal = new Signal();

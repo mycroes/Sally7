@@ -79,11 +79,11 @@ namespace Sally7
         /// </param>
         public S7Connection(string host, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default, RequestExecutorFactory? executorFactory = default)
         {
-            this._host = host;
-            this._sourceTsap = sourceTsap;
-            this._destinationTsap = destinationTsap;
-            this._memoryPool = memoryPool;
-            this._executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+            _host = host;
+            _sourceTsap = sourceTsap;
+            _destinationTsap = destinationTsap;
+            _memoryPool = memoryPool;
+            _executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
 
         /// <summary>
@@ -103,12 +103,12 @@ namespace Sally7
         public S7Connection(string host, int port, Tsap sourceTsap, Tsap destinationTsap, MemoryPool<byte>? memoryPool = default,
             RequestExecutorFactory? executorFactory = default)
         {
-            this._host = host;
-            this._port = port;
-            this._sourceTsap = sourceTsap;
-            this._destinationTsap = destinationTsap;
-            this._memoryPool = memoryPool;
-            this._executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
+            _host = host;
+            _port = port;
+            _sourceTsap = sourceTsap;
+            _destinationTsap = destinationTsap;
+            _memoryPool = memoryPool;
+            _executorFactory = executorFactory ?? DefaultRequestExecutorFactory;
         }
 
         /// <summary>

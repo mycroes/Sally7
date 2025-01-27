@@ -15,7 +15,7 @@ internal class CommunicationSequence
 
     public CommunicationSequence(ITestOutputHelper output)
     {
-        this._output = output;
+        _output = output;
     }
 
     public CommunicationSequence AddCall(byte[] request, byte[] response)
