@@ -9,15 +9,11 @@ using Sally7.Protocol.S7.Messages;
 
 namespace Sally7
 {
-    [Serializable]
     public class Sally7Exception : Exception
     {
         public Sally7Exception() { }
         public Sally7Exception(string message) : base(message) { }
         public Sally7Exception(string message, Exception inner) : base(message, inner) { }
-        protected Sally7Exception(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         internal static void ThrowTimeoutException() => throw new TimeoutException();
 
@@ -49,15 +45,11 @@ namespace Sally7
             => throw new ArgumentOutOfRangeException(nameof(bufferSize), $"The requested size for the Memory is too large, max. allowed is {bufferSize}.");
     }
 
-    [Serializable]
     internal class Sally7CommunicationSetupException : Sally7Exception
     {
         public Sally7CommunicationSetupException() { }
         public Sally7CommunicationSetupException(string message) : base(message) { }
         public Sally7CommunicationSetupException(string message, Exception inner) : base(message, inner) { }
-        protected Sally7CommunicationSetupException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         [DoesNotReturn]
         internal static void ThrowConnectionParametersNotSet()
@@ -73,15 +65,11 @@ namespace Sally7
             => throw new ArgumentNullException(nameof(slot), $"CpuType {cpuType} requires a value for {nameof(slot)}.");
     }
 
-    [Serializable]
     public class CotpProtocolException : Sally7Exception
     {
         public CotpProtocolException() { }
         public CotpProtocolException(string message) : base(message) { }
         public CotpProtocolException(string message, Exception inner) : base(message, inner) { }
-        protected CotpProtocolException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         internal static void ThrowSpecConnectionConfirmDoesNotMatch()
             => throw new CotpProtocolException("Spec violation, Connection Confirm doesn't match.");
@@ -99,15 +87,11 @@ namespace Sally7
             => throw new CotpProtocolException("Spec violation: Only class 0 is supported for TPKT over TCP.");
     }
 
-    [Serializable]
     public class S7ProtocolException : Sally7Exception
     {
         public S7ProtocolException() { }
         public S7ProtocolException(string message) : base(message) { }
         public S7ProtocolException(string message, Exception inner) : base(message, inner) { }
-        protected S7ProtocolException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         internal static void ThrowDataItemCountExceedsParameterCount(int dataItemCount, int parameterCount)
             => throw new S7ProtocolException($"Protocol only allows {parameterCount} data items, given: {dataItemCount}");
@@ -180,15 +164,11 @@ namespace Sally7
         }
     }
 
-    [Serializable]
     public class TpktException : Sally7Exception
     {
         public TpktException() { }
         public TpktException(string message) : base(message) { }
         public TpktException(string message, Exception inner) : base(message, inner) { }
-        protected TpktException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
 
         internal static void ThrowIncorrectHeaderVersion()
             => throw new TpktException("Spec violation: TPKT header has incorrect version.");
