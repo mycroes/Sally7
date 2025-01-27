@@ -19,11 +19,11 @@ public class JobPoolTests
     }
 
     [Fact]
-    public void ReturnJobId_Does_Not_Throw_If_Disposed()
+    public async Task ReturnJobId_Does_Not_Throw_If_Disposed()
     {
         // Arrange
         var sut = new JobPool(1);
-        var jobId = sut.RentJobIdAsync(CancellationToken.None).Result;
+        var jobId = await sut.RentJobIdAsync(CancellationToken.None);
         sut.Dispose();
 
         // Act
@@ -32,11 +32,11 @@ public class JobPoolTests
     }
 
     [Fact]
-    public void Dispose_Calls_Dispose_On_Requests()
+    public async Task Dispose_Calls_Dispose_On_Requests()
     {
         // Arrange
         var sut = new JobPool(1);
-        var jobId = sut.RentJobIdAsync(CancellationToken.None).Result;
+        var jobId = await sut.RentJobIdAsync(CancellationToken.None);
         var request = sut.GetRequest(jobId);
 
         // Act
