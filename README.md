@@ -31,12 +31,11 @@ await connection.OpenAsync();
 ### Read a DataBlockDataItem
 Read 10 bytes from DataBlock 87 starting at address 54
 ```
- var dataItem = new DataBlockDataItem<byte[]>
- {
-     DbNumber = 87,
-     Length = 10,
-     StartByte = 54
- };
+ var dataItem = new DataBlockDataItem<byte[]>(
+     dbNumber: 87,
+     length: 10,
+     startByte: 54
+ );
  await connection.ReadAsync(dataItem);
  Console.WriteLine($"Read data: {BitConverter.ToString(dataItem.Value)}");
 ```
