@@ -156,7 +156,7 @@ namespace Sally7
             maxNumberOfConcurrentRequests = s7CommunicationSetup.MaxAmqCaller;
         }
 
-        public static void ParseReadResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
+        public static void ParseReadResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems, Span<ReadWriteErrorCode> results)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -177,8 +177,6 @@ namespace Sally7
             }
 
             var data = buffer.Slice(21, s7Header.DataLength);
-            List<Exception>? exceptions = null;
-
             var offset = 0;
             foreach (var dataItem in dataItems)
             {
@@ -187,6 +185,10 @@ namespace Sally7
                 data = data.Slice(offset);
 
                 ref readonly var di = ref data.Struct<DataItem>(0);
+
+                results[0] = di.ErrorCode;
+                results = results.Slice(1);
+
                 if (di.ErrorCode == ReadWriteErrorCode.Success)
                 {
                     var size = di.TransportSize.IsSizeInBytes() ? (int) di.Count : di.Count >> 3;
@@ -199,15 +201,12 @@ namespace Sally7
                 }
                 else
                 {
-                    (exceptions ??= new List<Exception>(1)).Add(new Exception($"Read of dataItem {dataItem} returned {di.ErrorCode}"));
                     offset = 4;
                 }
             }
-
-            if (exceptions != null) throw new AggregateException(exceptions);
         }
 
-        public static void ParseWriteResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems)
+        public static void ParseWriteResponse(ReadOnlySpan<byte> buffer, ReadOnlySpan<IDataItem> dataItems, Span<ReadWriteErrorCode> results)
         {
             ref readonly var dt = ref buffer.Struct<Data>(4);
             dt.Assert();
@@ -233,17 +232,7 @@ namespace Sally7
                 S7ProtocolException.ThrowResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
             }
 
-            var errorCodes = MemoryMarshal.Cast<byte, ReadWriteErrorCode>(buffer.Slice(21));
-            List<Exception>? exceptions = null;
-
-            for (var i = 0; i < dataItems.Length; i++)
-            {
-                if (errorCodes[i] == ReadWriteErrorCode.Success) continue;
-
-                (exceptions ??= new List<Exception>(1)).Add(new Exception($"Write of dataItem {dataItems[i]} returned {errorCodes[i]}"));
-            }
-
-            if (exceptions != null) throw new AggregateException(exceptions);
+            buffer.Slice(21, dataItems.Length).CopyTo(MemoryMarshal.AsBytes(results));
         }
     }
 }
