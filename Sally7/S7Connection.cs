@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Sally7.Infrastructure;
@@ -357,7 +356,7 @@ namespace Sally7
 
             Throw();
             [DoesNotReturn]
-            static void Throw() => throw new ArgumentException("Results array length needs to be at least the same as the data items length.", nameof(resultsLength));
+            static void Throw() => throw new ArgumentException("Results array length needs to be at least the same as the data items length.", "results");
         }
 
         private IRequestExecutor GetExecutorOrThrow()

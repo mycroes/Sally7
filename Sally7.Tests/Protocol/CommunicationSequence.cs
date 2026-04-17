@@ -151,7 +151,7 @@ internal class CommunicationSequence
     }
 
     public CommunicationSequence AddRead(Area area, int dbNumber, int address, int length, TransportSize transportSize,
-        VariableType variableType, byte[] data)
+        VariableType variableType, byte[] data, ReadWriteErrorCode responseErrorCode = ReadWriteErrorCode.Success)
     {
         var dataLength = 4 + data.Length;
 
@@ -219,7 +219,7 @@ internal class CommunicationSequence
             1, // Number of items
 
             // DataItem
-            0xff, // ErrorCode
+            (byte) responseErrorCode, // ErrorCode
             (byte) transportSize, // Transport size
             (byte) (data.Length >> 5 & 0xff), // Data length, upper byte, in bits
             (byte) (data.Length << 3 & 0xff), // Data length, lower byte, in bits
@@ -227,7 +227,7 @@ internal class CommunicationSequence
     }
 
     public CommunicationSequence AddWrite(Area area, int dbNumber, int address, int length, TransportSize transportSize,
-        VariableType variableType, byte[] data)
+        VariableType variableType, byte[] data, ReadWriteErrorCode responseErrorCode = ReadWriteErrorCode.Success)
     {
         var dataLength = 4 + data.Length;
 
@@ -301,7 +301,7 @@ internal class CommunicationSequence
             1, // Number of items
 
             // Result code per item
-            0xff, // ErrorCode
+            (byte) responseErrorCode, // ErrorCode
         }.Concat(Fragment.FromBytes(data)).ToArray());
     }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Sally7.Infrastructure;
 using Sally7.Internal;
@@ -232,7 +231,13 @@ namespace Sally7
                 S7ProtocolException.ThrowResponseDoesNotMatchAckData(buffer.Length, s7Header.ParamLength, s7Header.DataLength);
             }
 
-            buffer.Slice(21, dataItems.Length).CopyTo(MemoryMarshal.AsBytes(results));
+            if (s7Header.DataLength != dataItems.Length)
+            {
+                throw new InvalidOperationException(
+                    $"Malformed write response: header data length {s7Header.DataLength} does not match expected item count {dataItems.Length}.");
+            }
+
+            buffer.Slice(21, s7Header.DataLength).CopyTo(MemoryMarshal.AsBytes(results));
         }
     }
 }

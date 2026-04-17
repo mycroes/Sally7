@@ -18,7 +18,7 @@ public static class ReadWriteErrorHelpers
     /// <returns>True if any operation returned an error code other than Success; otherwise, false.</returns>
     public static bool HasErrors(ReadOnlySpan<ReadWriteErrorCode> results)
     {
-#if NET7_0_OR_GREATER
+#if NET8_0_OR_GREATER
         return MemoryMarshal.AsBytes(results).IndexOfAnyExcept((byte)ReadWriteErrorCode.Success) != -1;
 #else
         for (var i = 0; i < results.Length; i++)
@@ -33,17 +33,19 @@ public static class ReadWriteErrorHelpers
     /// <summary>
     /// Checks the results of read/write operations and throws an AggregateException if any operation returned an error code other than Success.
     /// </summary>
-    /// <param name="message">The error message to include in the exception.</param>
+    /// <param name="operation">The operation for which the error occurred.</param>
     /// <param name="dataItems">The data items involved in the operations.</param>
     /// <param name="results">The results of the read/write operations.</param>
     public static void ThrowIfHasErrors(
-        string message,
+        string operation,
         ReadOnlySpan<IDataItem> dataItems,
         ReadOnlySpan<ReadWriteErrorCode> results)
     {
+        ThrowIfResultsLengthDoesNotMatchDataItemsLength(dataItems, results);
+
         if (!HasErrors(results)) return;
 
-        ThrowReadWriteException(message, dataItems, results);
+        ThrowReadWriteException(operation, dataItems, results);
     }
 
     /// <summary>
@@ -57,6 +59,8 @@ public static class ReadWriteErrorHelpers
     public static void ThrowReadWriteException(string operation, ReadOnlySpan<IDataItem> dataItems,
         ReadOnlySpan<ReadWriteErrorCode> results)
     {
+        ThrowIfResultsLengthDoesNotMatchDataItemsLength(dataItems, results);
+
         List<Exception> exceptions = [];
 
         for (var i = 0; i < dataItems.Length; i++)
@@ -67,5 +71,14 @@ public static class ReadWriteErrorHelpers
         }
 
         throw new AggregateException($"One or more errors occurred during {operation} operation.", exceptions);
+    }
+
+    private static void ThrowIfResultsLengthDoesNotMatchDataItemsLength(
+        ReadOnlySpan<IDataItem> dataItems,
+        ReadOnlySpan<ReadWriteErrorCode> results)
+    {
+        if (results.Length >= dataItems.Length) return;
+
+        throw new ArgumentException("Results length needs to be at least the same as the data items length.", nameof(results));
     }
 }
