@@ -8,6 +8,7 @@ using Sally7.Infrastructure;
 using Sally7.Internal;
 using Sally7.Protocol.Cotp;
 using Sally7.Protocol.IsoOverTcp;
+using Sally7.Protocol.S7;
 using Sally7.RequestExecutor;
 
 namespace Sally7
@@ -208,9 +209,51 @@ namespace Sally7
             }
         }
 
+        /// <summary>
+        /// Performs read operations for the specified data items. If any operation returns an error code other than Success,
+        /// an AggregateException is thrown containing a DataItemReadWriteException for each failed item with detailed information about the error.
+        /// </summary>
+        /// <param name="dataItems">The data items to read.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public Task ReadAsync(params IDataItem[] dataItems) => ReadAsync(dataItems, CancellationToken.None);
+
+        /// <summary>
+        /// Performs read operations for the specified data items. If any operation returns an error code other than Success,
+        /// an AggregateException is thrown containing a DataItemReadWriteException for each failed item with detailed information about the error.
+        /// </summary>
+        /// <param name="dataItems">The data items to read.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task ReadAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
+            var results = ArrayPool<ReadWriteErrorCode>.Shared.Rent(dataItems.Length);
+            try
+            {
+                await ReadAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
+
+                ReadWriteErrorHelpers.ThrowIfHasErrors("Read", dataItems, results.AsSpan(0, dataItems.Length));
+            }
+            finally
+            {
+                ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
+            }
+        }
+
+        /// <summary>
+        /// Performs read operations for the specified data items and returns the results of each operation in the provided results array.
+        /// Inspect the results array to check for errors, this method doesn't throw on individual item errors to allow for partial success.
+        /// Use <see cref="ReadWriteErrorHelpers"/> to check the results and throw exceptions with detailed information if needed.
+        /// The length of the results array needs to be at least the same as the length of the data items array.
+        /// </summary>
+        /// <param name="dataItems">The data items to read.</param>
+        /// <param name="results">The array to store the results of each read operation.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task ReadAsync(IDataItem[] dataItems, Memory<ReadWriteErrorCode> results,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowIfResultsTooShort(results.Length, dataItems.Length);
+
             using var linkedCts = CreateRequestTimeoutCancellationTokenSource(cancellationToken);
             var linkedToken = linkedCts.Token;
 
@@ -222,11 +265,9 @@ namespace Sally7
 
             try
             {
-                // The response will only be written after the request has been sent. At that point we no longer
-                // care about the request contents, so we use a single buffer only.
                 Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, linkedToken).ConfigureAwait(false);
 
-                S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems);
+                S7ConnectionHelpers.ParseReadResponse(response.Span, dataItems, results.Span);
             }
             catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
             {
@@ -238,9 +279,51 @@ namespace Sally7
             }
         }
 
+        /// <summary>
+        /// Performs write operations for the specified data items. If any operation returns an error code other than Success,
+        /// an AggregateException is thrown containing a DataItemReadWriteException for each failed item with detailed information about the error.
+        /// </summary>
+        /// <param name="dataItems">The data items to write.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public Task WriteAsync(params IDataItem[] dataItems) => WriteAsync(dataItems, CancellationToken.None);
+
+        /// <summary>
+        /// Performs write operations for the specified data items. If any operation returns an error code other than Success,
+        /// an AggregateException is thrown containing a DataItemReadWriteException for each failed item with detailed information about the error.
+        /// </summary>
+        /// <param name="dataItems">The data items to write.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task WriteAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
+            var results = ArrayPool<ReadWriteErrorCode>.Shared.Rent(dataItems.Length);
+            try
+            {
+                await WriteAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
+
+                ReadWriteErrorHelpers.ThrowIfHasErrors("Write", dataItems, results.AsSpan(0, dataItems.Length));
+            }
+            finally
+            {
+                ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
+            }
+        }
+
+        /// <summary>
+        /// Performs write operations for the specified data items and returns the results of each operation in the provided results array.
+        /// Inspect the results array to check for errors, this method doesn't throw on individual item errors to allow for partial success.
+        /// Use <see cref="ReadWriteErrorHelpers"/> to check the results and throw exceptions with detailed information if needed.
+        /// The length of the results array needs to be at least the same as the length of the data items array.
+        /// </summary>
+        /// <param name="dataItems">The data items to write.</param>
+        /// <param name="results">The array to store the results of each write operation.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task WriteAsync(IDataItem[] dataItems, Memory<ReadWriteErrorCode> results,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowIfResultsTooShort(results.Length, dataItems.Length);
+
             IRequestExecutor executor = GetExecutorOrThrow();
 
             using IMemoryOwner<byte> mo = _memoryPool!.Rent(_bufferSize);
@@ -252,12 +335,10 @@ namespace Sally7
 
             try
             {
-                // The response will only be written after the request has been sent. At that point we no longer
-                // care about the request contents, so we use a single buffer only.
                 Memory<byte> response = await executor.PerformRequest(mem.Slice(0, length), mem, linkedToken)
                     .ConfigureAwait(false);
 
-                S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems);
+                S7ConnectionHelpers.ParseWriteResponse(response.Span, dataItems, results.Span);
             }
             catch (OperationCanceledException) when (linkedToken.IsCancellationRequested)
             {
@@ -267,6 +348,15 @@ namespace Sally7
                 // Not user requested, request timed out.
                 Sally7Exception.ThrowTimeoutException();
             }
+        }
+
+        private static void ThrowIfResultsTooShort(int resultsLength, int dataItemsLength)
+        {
+            if (resultsLength >= dataItemsLength) return;
+
+            Throw();
+            [DoesNotReturn]
+            static void Throw() => throw new ArgumentException("Results array length needs to be at least the same as the data items length.", "results");
         }
 
         private IRequestExecutor GetExecutorOrThrow()
