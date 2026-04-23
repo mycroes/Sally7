@@ -230,6 +230,7 @@ namespace Sally7
             await ReadAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
 
             ReadWriteErrorHelpers.ThrowIfHasErrors("Read", dataItems, results.AsSpan(0, dataItems.Length));
+            ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
         }
 
         /// <summary>
@@ -293,6 +294,7 @@ namespace Sally7
             await WriteAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
 
             ReadWriteErrorHelpers.ThrowIfHasErrors("Write", dataItems, results.AsSpan(0, dataItems.Length));
+            ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
         }
 
         /// <summary>
