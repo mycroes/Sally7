@@ -227,16 +227,9 @@ namespace Sally7
         public async Task ReadAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
             var results = ArrayPool<ReadWriteErrorCode>.Shared.Rent(dataItems.Length);
-            try
-            {
-                await ReadAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
+            await ReadAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
 
-                ReadWriteErrorHelpers.ThrowIfHasErrors("Read", dataItems, results.AsSpan(0, dataItems.Length));
-            }
-            finally
-            {
-                ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
-            }
+            ReadWriteErrorHelpers.ThrowIfHasErrors("Read", dataItems, results.AsSpan(0, dataItems.Length));
         }
 
         /// <summary>
@@ -297,16 +290,9 @@ namespace Sally7
         public async Task WriteAsync(IDataItem[] dataItems, CancellationToken cancellationToken = default)
         {
             var results = ArrayPool<ReadWriteErrorCode>.Shared.Rent(dataItems.Length);
-            try
-            {
-                await WriteAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
+            await WriteAsync(dataItems, results, cancellationToken).ConfigureAwait(false);
 
-                ReadWriteErrorHelpers.ThrowIfHasErrors("Write", dataItems, results.AsSpan(0, dataItems.Length));
-            }
-            finally
-            {
-                ArrayPool<ReadWriteErrorCode>.Shared.Return(results);
-            }
+            ReadWriteErrorHelpers.ThrowIfHasErrors("Write", dataItems, results.AsSpan(0, dataItems.Length));
         }
 
         /// <summary>
